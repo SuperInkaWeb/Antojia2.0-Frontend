@@ -9,3 +9,69 @@
   gap: 10px;
   flex-wrap: wrap;
 }
+
+.admin-money-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+.admin-money-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fff;
+}
+.admin-money-card span { color: #6b7280; font-size: .78rem; }
+.admin-money-card strong { color: #111827; font-size: 1.15rem; }
+.admin-money-card small { color: #9ca3af; font-size: .7rem; }
+
+.settlement-rate-card,.settlement-list-card,.settlement-detail-card,.settlement-requests-card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:20px}
+.settlement-rate-card{display:flex;align-items:center;justify-content:space-between;gap:24px;border-color:#fed7aa;background:#fffaf6}
+.settlement-rate-card h2,.settlement-section-title h2{margin:3px 0 5px;color:#111827;font-size:1rem}
+.settlement-rate-card p,.settlement-owner{margin:0;color:#6b7280;font-size:.8rem;line-height:1.5}
+.settlement-rate-card label{display:flex;align-items:center;gap:10px;font-size:.8rem;font-weight:700;white-space:nowrap}
+.settlement-rate-card select{border:1px solid #d1d5db;border-radius:8px;background:white;padding:9px 12px;font-weight:700;color:#c2410c}
+.settlement-eyebrow{font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:#e85d24}
+.settlement-layout{display:grid;grid-template-columns:minmax(250px,.8fr) minmax(360px,1.5fr);gap:16px;align-items:start}
+.settlement-section-title{display:flex;align-items:center;gap:9px;color:#e85d24;margin-bottom:14px}
+.settlement-section-title h2{margin:0;flex:1}
+.settlement-section-title>span{font-size:.75rem;color:#6b7280;background:#f3f4f6;border-radius:99px;padding:3px 8px}
+.settlement-restaurant{width:100%;display:flex;align-items:center;gap:10px;text-align:left;padding:10px 8px;border:0;border-top:1px solid #f3f4f6;background:#fff;cursor:pointer}
+.settlement-restaurant:hover,.settlement-restaurant.active{background:#fff7ed}
+.settlement-restaurant-logo{width:36px;height:36px;display:grid;place-items:center;overflow:hidden;border-radius:9px;background:#f3f4f6;color:#9ca3af;flex:none}
+.settlement-restaurant-logo img{width:100%;height:100%;object-fit:cover}
+.settlement-restaurant-name{display:flex;flex-direction:column;gap:3px;flex:1;min-width:0}
+.settlement-restaurant-name strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.82rem;color:#111827}
+.settlement-restaurant-name small,.settlement-request-head small{font-size:.7rem;color:#9ca3af}
+.settlement-restaurant>b{font-size:.78rem;color:#15803d;white-space:nowrap}
+.settlement-owner{margin:-8px 0 14px}
+.settlement-breakdown{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.settlement-breakdown>div{display:flex;flex-direction:column;gap:5px;padding:12px;border-radius:10px;background:#f9fafb}
+.settlement-breakdown span{font-size:.72rem;color:#6b7280}
+.settlement-breakdown strong{font-size:1rem;color:#111827}
+.settlement-breakdown .settlement-wallet{grid-column:1/-1;background:#f0fdf4}
+.settlement-wallet strong{color:#15803d}
+.settlement-primary,.settlement-transfer-row button{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:0;border-radius:9px;background:#e85d24;color:white;padding:10px 15px;font-size:.8rem;font-weight:700;cursor:pointer}
+.settlement-primary{width:100%;margin-top:14px}
+.settlement-primary:disabled,.settlement-transfer-row button:disabled{opacity:.5;cursor:not-allowed}
+.settlement-note{display:block;margin-top:8px;color:#9ca3af;font-size:.7rem;line-height:1.5}
+.settlement-subtitle{margin:22px 0 8px;color:#374151;font-size:.84rem}
+.settlement-ledger{display:flex;flex-direction:column;gap:7px}
+.settlement-ledger>div{display:flex;justify-content:space-between;gap:8px;padding:9px 0;border-top:1px solid #f3f4f6;font-size:.72rem}
+.settlement-ledger span{color:#6b7280}.settlement-ledger b{color:#15803d}
+.settlement-empty{padding:12px 4px;margin:0;color:#9ca3af;font-size:.8rem}
+.settlement-requests{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.settlement-request{padding:14px;border:1px solid #e5e7eb;border-radius:11px}
+.settlement-request-head{display:flex;justify-content:space-between;gap:10px}
+.settlement-request-head>div{display:flex;flex-direction:column;gap:4px}
+.settlement-request-head strong{font-size:.85rem}.settlement-request-head>b{color:#15803d}
+.settlement-request>p{font-size:.76rem;color:#4b5563}
+.settlement-bank-detail{display:flex;flex-direction:column;gap:5px;padding:9px;border-radius:8px;background:#f9fafb;font-size:.73rem;color:#374151}
+.settlement-bank-detail small{color:#9ca3af}
+.settlement-transfer-row{display:flex;gap:7px;margin-top:10px}
+.settlement-transfer-row input{min-width:0;flex:1;border:1px solid #d1d5db;border-radius:8px;padding:8px;font-size:.75rem}
+.settlement-transfer-row button{font-size:.72rem;padding:8px 10px;white-space:nowrap}
+@media(max-width:760px){.settlement-layout{grid-template-columns:1fr}.settlement-rate-card{align-items:flex-start;flex-direction:column}.settlement-transfer-row{flex-direction:column}.settlement-transfer-row button{width:100%}}

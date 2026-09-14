@@ -5,10 +5,10 @@ import toast from 'react-hot-toast'
 import {
   BarChart3, BookOpen, ChevronRight, ClipboardList, FileText, CookingPot,
   House, LogOut, Menu as MenuIcon, Percent, ReceiptText, Search, Settings,
-  ShoppingBag, Star, Store, TrendingUp, Users, X,
+  ShoppingBag, Star, Store, TrendingUp, Users, X, Wallet, Landmark,
 } from 'lucide-react'
 import { useCurrentUser } from '../hooks/useCurrentUser.js'
-import { useRestaurantCustomers, useRestaurantCustomerDetail, useRestaurantOrders, useUpdateOrderStatus } from '../hooks/useRestaurantOrders.js'
+import { useRestaurantCustomers, useRestaurantCustomerDetail, useRestaurantOrders, useUpdateOrderStatus, useRestaurantWallet, useRequestRestaurantWithdrawal } from '../hooks/useRestaurantOrders.js'
 import { useApplyProductDiscount, useRestaurantProducts } from '../hooks/useProfile.js'
 import { SectionMenu, SectionRestaurant } from './Profile.jsx'
 import './Profile.css'
@@ -22,6 +22,7 @@ const SECTIONS = [
   { id: 'ventas', label: 'Datos de venta', icon: ClipboardList },
   { id: 'promociones', label: 'Promociones', icon: Percent },
   { id: 'facturacion', label: 'Facturación', icon: ReceiptText },
+  { id: 'deposito', label: 'Depósito', icon: Wallet },
   { id: 'configuracion', label: 'Configuración', icon: Settings },
 ]
 
@@ -48,18 +49,15 @@ function Empty({ children }) {
 }
 
 function Overview({ orders, restaurant }) {
-  const paid = orders.filter(order => ['PAID', 'APPROVED'].includes(order.payment?.status))
-  const commissionRate = Number(restaurant.commissionRate || 0)
-  const commission = commissionRate <= 1 ? commissionRate * 100 : commissionRate
-  const gross = paid.reduce((sum, order) => sum + Number(order.total || 0), 0)
-  const net = gross * (1 - commission / 100)
+  const paid = orders.filter(order => order.status !== 'CANCELLED' && ['PAID', 'APPROVED'].includes(order.payment?.status))
+  const gross = paid.reduce((sum, order) => sum + Math.max(0, Number(order.subtotal || 0) - Number(order.discountAmount || 0)), 0)
   const clients = new Set(orders.map(order => order.user?.id || order.user?.email).filter(Boolean)).size
   const ranking = getRanking(orders)
   const buyers = orders.filter(order => order.user).slice(0, 5)
 
   const cards = [
     { label: 'Clientes totales', value: clients, detail: 'Personas que hicieron pedidos', icon: Users, tone: 'orange' },
-    { label: 'Ingresos netos', value: money(net), detail: `Comisión descontada: ${commission}%`, icon: TrendingUp, tone: 'green' },
+    { label: 'Ingresos por ventas', value: money(gross), detail: `${paid.length} pagos confirmados`, icon: TrendingUp, tone: 'green' },
     { label: 'Pedidos registrados', value: orders.length, detail: 'Reservas y delivery', icon: ClipboardList, tone: 'violet' },
     { label: 'Plato más pedido', value: ranking[0]?.[0] || 'Sin ventas', detail: ranking[0] ? `${ranking[0][1]} unidades` : 'Aún sin datos', icon: Star, tone: 'gold' },
   ]
@@ -67,7 +65,6 @@ function Overview({ orders, restaurant }) {
   return <div className="rp-stack">
     <section className="rp-welcome">
       <div><span>Resumen del negocio</span><h1>Hola, {restaurant.name}</h1><p>Revisa el rendimiento de tu restaurante desde un solo lugar.</p></div>
-      <div className="rp-commission">Tu comisión actual <strong>{commission}%</strong></div>
     </section>
     <div className="rp-metrics">{cards.map(card => {
       const Icon = card.icon
@@ -234,6 +231,43 @@ function Billing({ orders, restaurant }) {
   </section>
 }
 
+const WITHDRAWAL_STATUS = { PENDING: 'Pendiente', PROCESSING: 'En proceso', PAID: 'Transferido', REJECTED: 'Rechazado' }
+
+function Deposit({ restaurantId }) {
+  const { data: wallet, isLoading } = useRestaurantWallet(restaurantId)
+  const withdrawal = useRequestRestaurantWithdrawal(restaurantId)
+  const [form, setForm] = useState({ amount: '', bankName: '', accountHolder: '', accountNumber: '', cci: '', accountType: 'CUENTA' })
+  const update = event => setForm(current => ({ ...current, [event.target.name]: event.target.value }))
+  const submit = event => {
+    event.preventDefault()
+    withdrawal.mutate({ ...form, amount: Number(form.amount) })
+  }
+
+  return <section className="rp-panel rp-deposit">
+    <div className="rp-panel-head"><div><h1>Depósito y retiros</h1><p>Revisa el saldo que te acreditó el administrador y solicita una transferencia a tu cuenta.</p></div><Wallet size={21}/></div>
+    <div className="rp-deposit-balance"><div><small>Saldo disponible</small><strong>{isLoading ? 'Cargando…' : money(wallet?.balance)}</strong></div><Wallet size={24}/></div>
+    <form className="rp-withdraw-form" onSubmit={submit}>
+      <h2><Landmark size={18}/> Solicitar retiro bancario</h2>
+      <p>Ingresa una cuenta bancaria o CCI a tu nombre. No escribas claves, CVV ni códigos de seguridad de tarjetas.</p>
+      <label>Monto a retirar<input type="number" name="amount" min="0.01" max={wallet?.balance || 0} step="0.01" required value={form.amount} onChange={update} placeholder="S/ 0.00"/></label>
+      <div className="rp-withdraw-grid">
+        <label>Banco<input name="bankName" required maxLength="80" value={form.bankName} onChange={update} placeholder="Nombre del banco"/></label>
+        <label>Titular de la cuenta<input name="accountHolder" required maxLength="120" value={form.accountHolder} onChange={update} placeholder="Nombre completo"/></label>
+        <label>Tipo de cuenta<select name="accountType" value={form.accountType} onChange={update}><option value="CUENTA">Cuenta bancaria</option><option value="AHORROS">Ahorros</option><option value="CORRIENTE">Corriente</option></select></label>
+        <label>Número de cuenta<input name="accountNumber" inputMode="numeric" minLength="8" maxLength="20" value={form.accountNumber} onChange={update} placeholder="8 a 20 dígitos"/></label>
+        <label>CCI (opcional)<input name="cci" inputMode="numeric" minLength="20" maxLength="20" value={form.cci} onChange={update} placeholder="20 dígitos"/></label>
+      </div>
+      <button className="rp-primary" disabled={withdrawal.isPending || !wallet?.balance || Number(form.amount) > Number(wallet?.balance || 0)}>{withdrawal.isPending ? 'Enviando solicitud…' : 'Solicitar retiro'}</button>
+    </form>
+    <div className="rp-deposit-history">
+      <h2>Saldo acreditado</h2>
+      {!wallet?.payouts?.length ? <Empty>Aún no tienes depósitos acreditados.</Empty> : wallet.payouts.map(payout => <article key={payout.id}><span>{peruDate(payout.createdAt)}</span><strong>+{money(payout.netAmount)}</strong></article>)}
+      <h2>Solicitudes de retiro</h2>
+      {!wallet?.withdrawals?.length ? <Empty>Aún no solicitaste retiros.</Empty> : wallet.withdrawals.map(item => <article key={item.id}><span>{peruDate(item.createdAt)} · {item.bankName} · {item.destinationAccountMasked} · {WITHDRAWAL_STATUS[item.status] || item.status}</span><strong>−{money(item.amount)}</strong></article>)}
+    </div>
+  </section>
+}
+
 export default function RestaurantPortal() {
   const navigate = useNavigate()
   const { logout } = useAuth0()
@@ -264,7 +298,7 @@ export default function RestaurantPortal() {
     </aside>
     <main className="rp-main"><header className="rp-topbar"><div><small>Panel del restaurante</small><strong>{SECTIONS.find(item => item.id === section)?.label}</strong></div></header>
       <div className="rp-content">{ordersLoading && section !== 'menu' && section !== 'promociones' ? <div className="rp-loading">Preparando tus datos…</div> : <>
-        {section === 'dashboard' && <Overview orders={orders} restaurant={restaurant}/>} {section === 'clientes' && <Customers restaurantId={restaurant.id} onSelect={setSelectedCustomer}/>} {section === 'menu' && <SectionMenu restaurant={restaurant}/>} {section === 'preparacion' && <MenuPreparation orders={orders}/>} {section === 'ventas' && <Sales orders={orders}/>} {section === 'promociones' && <Promotions restaurantId={restaurant.id} orders={orders}/>} {section === 'facturacion' && <Billing orders={orders} restaurant={restaurant}/>} {section === 'configuracion' && <SectionRestaurant restaurant={restaurant}/>} </>}
+        {section === 'dashboard' && <Overview orders={orders} restaurant={restaurant}/>} {section === 'clientes' && <Customers restaurantId={restaurant.id} onSelect={setSelectedCustomer}/>} {section === 'menu' && <SectionMenu restaurant={restaurant}/>} {section === 'preparacion' && <MenuPreparation orders={orders}/>} {section === 'ventas' && <Sales orders={orders}/>} {section === 'promociones' && <Promotions restaurantId={restaurant.id} orders={orders}/>} {section === 'facturacion' && <Billing orders={orders} restaurant={restaurant}/>} {section === 'deposito' && <Deposit restaurantId={restaurant.id}/>} {section === 'configuracion' && <SectionRestaurant restaurant={restaurant}/>} </>}
         {selectedCustomer && <CustomerDetail detail={customerDetail} isLoading={customerDetailLoading} onClose={() => setSelectedCustomer(null)}/>}
       </div>
     </main>

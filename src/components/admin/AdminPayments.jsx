@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import AdminTable, { AdminTableFilter, AdminTablePagination, StatusBadge } from './AdminTable.jsx'
-import { useAdminPayments } from '../../hooks/useAdmin.js'
+import { useAdminPayments, useAdminPaymentSummary } from '../../hooks/useAdmin.js'
 import './AdminSection.css'
 
 const STATUS_MAP = {
@@ -21,7 +21,9 @@ const STATUS_OPTIONS = Object.entries(STATUS_MAP).map(([v, { label }]) => ({ val
 export default function AdminPayments() {
   const [status, setStatus] = useState('')
   const [page,   setPage]   = useState(1)
-  const { data, isLoading } = useAdminPayments({ status, page, limit: 15 })
+  const { data, isLoading } = useAdminPayments({ status, method: 'MERCADOPAGO', page, limit: 15 })
+  const { data: summaryResponse, isLoading: summaryLoading } = useAdminPaymentSummary()
+  const summary = summaryResponse?.data
 
   const columns = [
     { key: 'order',   label: '#Pedido', width: 120, render: p => (
@@ -39,6 +41,15 @@ export default function AdminPayments() {
 
   return (
     <div className="admin-section">
+      <div className="admin-money-grid">
+        {[
+          ['Hoy', summary?.today], ['Esta semana', summary?.week], ['Este mes', summary?.month],
+          ['Este año', summary?.year], ['Total recibido', summary?.lifetime],
+        ].map(([label, value]) => <article className="admin-money-card" key={label}>
+          <span>{label}</span><strong>{summaryLoading ? '…' : `S/ ${Number(value || 0).toFixed(2)}`}</strong>
+          {label === 'Total recibido' && <small>{summary?.count || 0} pagos Mercado Pago confirmados</small>}
+        </article>)}
+      </div>
       <div className="admin-section-toolbar">
         <AdminTableFilter value={status} onChange={v => { setStatus(v); setPage(1) }} options={STATUS_OPTIONS} placeholder="Todos los estados" />
       </div>

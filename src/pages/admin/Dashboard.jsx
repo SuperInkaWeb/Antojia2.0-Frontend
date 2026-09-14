@@ -7,6 +7,7 @@ import AdminRestaurants from '../../components/admin/AdminRestaurants.jsx'
 import AdminUsers from '../../components/admin/AdminUsers.jsx'
 import AdminOrders from '../../components/admin/AdminOrders.jsx'
 import AdminPayments from '../../components/admin/AdminPayments.jsx'
+import AdminRestaurantPayouts from '../../components/admin/AdminRestaurantPayouts.jsx'
 import AdminDrivers from '../../components/admin/AdminDrivers.jsx'
 import './Dashboard.css'
 import { useCurrentUser } from '../../hooks/useCurrentUser.js'
@@ -17,6 +18,7 @@ const SECTIONS = {
   users:       { label: 'Usuarios',      component: AdminUsers },
   orders:      { label: 'Pedidos',       component: AdminOrders },
   payments:    { label: 'Pagos',         component: AdminPayments },
+  settlements: { label: 'Pagos a restaurantes', component: AdminRestaurantPayouts },
   drivers:     { label: 'Repartidores',  component: AdminDrivers },
 }
 

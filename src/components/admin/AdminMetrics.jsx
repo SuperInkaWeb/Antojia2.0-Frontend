@@ -1,13 +1,14 @@
+import { createElement } from 'react'
 import { Users, Store, ShoppingBag, DollarSign, TrendingUp, TrendingDown, Clock } from 'lucide-react'
 import { useMetrics, useRevenueChart } from '../../hooks/useAdmin.js'
 import './AdminMetrics.css'
 
-function StatCard({ icon: Icon, label, value, sub, trend, color }) {
+function StatCard({ icon, label, value, sub, trend, color }) {
   return (
     <div className="stat-card">
       <div className="stat-card-header">
         <div className="stat-card-icon" style={{ background: color + '18', color }}>
-          <Icon size={20} />
+          {createElement(icon, { size: 20 })}
         </div>
         {trend !== undefined && trend !== null && (
           <span className={`stat-card-trend ${trend >= 0 ? 'stat-card-trend--up' : 'stat-card-trend--down'}`}>
@@ -71,9 +72,9 @@ export default function AdminMetrics() {
         />
         <StatCard
           icon={Store}
-          label="Restaurantes activos"
-          value={metrics.restaurants.active}
-          sub={`${metrics.restaurants.pending} pendientes`}
+          label="Restaurantes registrados"
+          value={metrics.restaurants.total}
+          sub={`${metrics.restaurants.active} activos · ${metrics.restaurants.pending} pendientes`}
           color="#e85d24"
         />
         <StatCard
@@ -85,9 +86,9 @@ export default function AdminMetrics() {
         />
         <StatCard
           icon={DollarSign}
-          label="Ingresos este mes"
+          label={`Ganancia admin este mes (${metrics.revenue.commissionPercent}%)`}
           value={`S/ ${metrics.revenue.thisMonth.toLocaleString()}`}
-          sub={`Ticket prom: S/ ${metrics.revenue.avgTicket}`}
+          sub={`${metrics.revenue.paidPayments} pagos este mes · ticket prom histórico: S/ ${metrics.revenue.avgTicket}`}
           trend={metrics.revenue.growth}
           color="#16a34a"
         />
@@ -95,7 +96,7 @@ export default function AdminMetrics() {
 
       {/* Gráfico de ingresos */}
       <div className="metrics-chart-card">
-        <h2 className="metrics-chart-title">Ingresos últimos 6 meses</h2>
+        <h2 className="metrics-chart-title">Ganancia del admin por mes · últimos 6 meses</h2>
         <SimpleBarChart data={chart} />
       </div>
 
@@ -123,6 +124,7 @@ export default function AdminMetrics() {
 
         <div className="metrics-detail-card">
           <h3 className="metrics-detail-title">Top restaurantes</h3>
+          {metrics.topRestaurants?.length === 0 && <p style={{ color: '#9ca3af', fontSize: '.82rem' }}>Aún no hay restaurantes activos con pedidos.</p>}
           {metrics.topRestaurants?.map((r, i) => (
             <div key={r.id} className="metrics-detail-row">
               <span className="metrics-top-rank">#{i + 1}</span>

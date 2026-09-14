@@ -77,6 +77,14 @@ export function useAdminPayments(params = {}) {
   return useAuthenticatedQuery('admin-payments', '/api/v1/admin/payments', params)
 }
 
+export function useAdminPaymentSummary() {
+  return useAuthenticatedQuery('admin-payment-summary', '/api/v1/admin/payments/summary')
+}
+
+export function useAdminSettlements() {
+  return useAuthenticatedQuery('admin-settlements', '/api/v1/admin/settlements', {}, { refetchInterval: 30000 })
+}
+
 export function useAdminDrivers(params = {}) {
   return useAuthenticatedQuery('admin-drivers', '/api/v1/admin/drivers', params)
 }
@@ -138,5 +146,23 @@ export function useAdminMutations() {
     onError:   (err) => toast.error(err?.response?.data?.message || 'Error al suspender repartidor'),
   })
 
-  return { verifyRestaurant, suspendRestaurant, toggleUser, changeRole, verifyDriver, suspendDriver }
+  const updateCommission = useMutation({
+    mutationFn: (commissionPercent) => withToken(() => api.patch('/api/v1/admin/settlements/commission', { commissionPercent })),
+    onSuccess: () => { toast.success('Porcentaje de comisión actualizado'); invalidate() },
+    onError: (err) => toast.error(err?.response?.data?.message || 'No se pudo actualizar la comisión'),
+  })
+
+  const creditRestaurant = useMutation({
+    mutationFn: (id) => withToken(() => api.post(`/api/v1/admin/settlements/restaurants/${id}/credit`)),
+    onSuccess: () => { toast.success('Saldo acreditado al restaurante'); invalidate() },
+    onError: (err) => toast.error(err?.response?.data?.message || 'No se pudo acreditar el saldo'),
+  })
+
+  const markWithdrawalPaid = useMutation({
+    mutationFn: ({ id, transferReference }) => withToken(() => api.patch(`/api/v1/admin/settlements/withdrawals/${id}/paid`, { transferReference })),
+    onSuccess: () => { toast.success('Retiro marcado como transferido'); invalidate() },
+    onError: (err) => toast.error(err?.response?.data?.message || 'No se pudo actualizar el retiro'),
+  })
+
+  return { verifyRestaurant, suspendRestaurant, toggleUser, changeRole, verifyDriver, suspendDriver, updateCommission, creditRestaurant, markWithdrawalPaid }
 }

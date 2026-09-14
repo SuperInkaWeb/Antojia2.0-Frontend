@@ -85,3 +85,34 @@ export function useRestaurantCustomerDetail(restaurantId, customerId) {
     enabled: isAuthenticated && !!restaurantId && !!customerId,
   })
 }
+
+export function useRestaurantWallet(restaurantId) {
+  const { isAuthenticated, getAccessTokenSilently } = useAuth0()
+  return useQuery({
+    queryKey: ['restaurant-wallet', restaurantId],
+    queryFn: async () => {
+      await getToken(getAccessTokenSilently)
+      const { data } = await api.get(`/api/v1/restaurants/${restaurantId}/wallet`)
+      return data.data
+    },
+    enabled: isAuthenticated && !!restaurantId,
+    refetchInterval: 30000,
+  })
+}
+
+export function useRequestRestaurantWithdrawal(restaurantId) {
+  const { getAccessTokenSilently } = useAuth0()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async payload => {
+      await getToken(getAccessTokenSilently)
+      const { data } = await api.post(`/api/v1/restaurants/${restaurantId}/withdrawals`, payload)
+      return data.data
+    },
+    onSuccess: () => {
+      toast.success('Solicitud enviada. El administrador procesará la transferencia.')
+      qc.invalidateQueries({ queryKey: ['restaurant-wallet', restaurantId] })
+    },
+    onError: err => toast.error(err?.response?.data?.message || 'No se pudo solicitar el retiro'),
+  })
+}

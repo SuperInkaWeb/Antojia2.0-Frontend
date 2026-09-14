@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { LayoutDashboard, Store, Users, ShoppingBag, CreditCard, Bike, LogOut, ChefHat } from 'lucide-react'
+import { LayoutDashboard, Store, Users, ShoppingBag, CreditCard, Bike, LogOut, ChefHat, Wallet } from 'lucide-react'
 import { useAuth0 } from '@auth0/auth0-react'
 import './AdminSidebar.css'
 
@@ -9,6 +9,7 @@ const ICONS = {
   users:       Users,
   orders:      ShoppingBag,
   payments:    CreditCard,
+  settlements: Wallet,
   drivers:     Bike,
 }
 
