@@ -1,41 +1,20 @@
 import { useRef, useState } from 'react'
+import { useAuth0 } from '@auth0/auth0-react'
 import { Camera, CheckCircle2, Loader2 } from 'lucide-react'
+import { uploadImage } from '../../utils/uploadImage.js'
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
-const SUPABASE_ANON = import.meta.env.VITE_SUPABASE_ANON_KEY
-const BUCKET = 'logos'
-
-async function uploadProof(file, orderId) {
-  if (!SUPABASE_URL || !SUPABASE_ANON) throw new Error('Falta configurar Supabase Storage')
-  const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
-  if (!allowedTypes.includes(file.type)) throw new Error('La foto debe ser JPG, PNG o WEBP')
-  if (file.size > 8 * 1024 * 1024) throw new Error('La fotografía no puede superar 8 MB')
-  const ext = (file.name.split('.').pop() || 'jpg').toLowerCase()
-  // Reutiliza la carpeta autorizada por la política RLS del bucket de logos.
-  const path = `restaurants/deliveries/${orderId}_${Date.now()}.${ext}`
-  const response = await fetch(`${SUPABASE_URL}/storage/v1/object/${BUCKET}/${path}`, {
-    method: 'POST',
-    headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${SUPABASE_ANON}`, 'Content-Type': file.type, 'x-upsert': 'false' },
-    body: file,
-  })
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}))
-    const message = error.message?.includes('row-level security')
-      ? 'Supabase bloqueó la foto. Revisa la política INSERT del bucket logos.'
-      : error.message
-    throw new Error(message || 'No se pudo subir la fotografía')
-  }
-  return `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${path}`
-}
-
-export default function DeliveryProofCapture({ orderId, value, onUploaded }) {
+export default function DeliveryProofCapture({ value, onUploaded }) {
+  const { getAccessTokenSilently } = useAuth0()
   const inputRef = useRef(null)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState('')
   const handlePhoto = async (file) => {
     if (!file) return
     setUploading(true); setError('')
-    try { onUploaded(await uploadProof(file, orderId)) }
+    try {
+      if (file.size > 8 * 1024 * 1024) throw new Error('La fotografía no puede superar 8 MB')
+      onUploaded(await uploadImage(file, 'delivery/proofs', getAccessTokenSilently))
+    }
     catch (err) { setError(err.message); onUploaded('') }
     finally { setUploading(false); if (inputRef.current) inputRef.current.value = '' }
   }

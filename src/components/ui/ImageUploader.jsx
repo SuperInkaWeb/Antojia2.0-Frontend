@@ -1,29 +1,11 @@
 import { useRef, useState } from 'react'
+import { useAuth0 } from '@auth0/auth0-react'
 import { ImagePlus, Loader2, Upload, X } from 'lucide-react'
+import { uploadImage } from '../../utils/uploadImage.js'
 import './LogoUploader.css'
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
-const SUPABASE_ANON = import.meta.env.VITE_SUPABASE_ANON_KEY
-const BUCKET = 'logos'
-
-async function uploadImage(file, scope) {
-  if (!SUPABASE_URL || !SUPABASE_ANON) throw new Error('El almacenamiento de imágenes aún no está configurado')
-  const extension = file.name.split('.').pop()?.toLowerCase() || 'jpg'
-  const uniqueId = globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`
-  const path = `uploads/${scope}/${uniqueId}.${extension}`
-  const response = await fetch(`${SUPABASE_URL}/storage/v1/object/${BUCKET}/${path}`, {
-    method: 'POST',
-    headers: { apikey: SUPABASE_ANON, 'Content-Type': file.type, 'x-upsert': 'false' },
-    body: file,
-  })
-  if (!response.ok) {
-    const body = await response.json().catch(() => ({}))
-    throw new Error(body.message || 'No se pudo subir la imagen')
-  }
-  return `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${path}`
-}
-
-export default function ImageUploader({ value, onUploaded, scope = 'general', label = 'Subir imagen' }) {
+export default function ImageUploader({ value, onUploaded, scope = 'restaurants/logos', label = 'Subir imagen' }) {
+  const { getAccessTokenSilently } = useAuth0()
   const inputRef = useRef(null)
   const [preview, setPreview] = useState(value || null)
   const [uploading, setUploading] = useState(false)
@@ -38,7 +20,7 @@ export default function ImageUploader({ value, onUploaded, scope = 'general', la
     setPreview(URL.createObjectURL(file))
     setUploading(true)
     try {
-      const url = await uploadImage(file, scope)
+      const url = await uploadImage(file, scope, getAccessTokenSilently)
       setPreview(url)
       onUploaded(url)
     } catch (uploadError) {
