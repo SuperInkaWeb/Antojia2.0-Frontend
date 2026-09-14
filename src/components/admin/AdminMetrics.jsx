@@ -92,6 +92,13 @@ export default function AdminMetrics() {
           trend={metrics.revenue.growth}
           color="#16a34a"
         />
+        <StatCard
+          icon={Clock}
+          label="Ventas de prueba (no cobradas)"
+          value={`S/ ${Number(metrics.revenue.testSalesThisMonth || 0).toLocaleString()}`}
+          sub={`${metrics.revenue.testPaymentsThisMonth || 0} pagos sandbox · comisión admin simulada: S/ ${Number(metrics.revenue.testAdminCommissionThisMonth || 0).toFixed(2)}`}
+          color="#7c3aed"
+        />
       </div>
 
       {/* Gráfico de ingresos */}

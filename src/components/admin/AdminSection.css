@@ -26,7 +26,7 @@
 }
 .admin-money-card span { color: #6b7280; font-size: .78rem; }
 .admin-money-card strong { color: #111827; font-size: 1.15rem; }
-.admin-money-card small { color: #9ca3af; font-size: .7rem; }
+  .admin-money-card small { color: #9ca3af; font-size: .7rem; }
 
 .settlement-rate-card,.settlement-list-card,.settlement-detail-card,.settlement-requests-card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:20px}
 .settlement-rate-card{display:flex;align-items:center;justify-content:space-between;gap:24px;border-color:#fed7aa;background:#fffaf6}
@@ -75,3 +75,5 @@
 .settlement-transfer-row input{min-width:0;flex:1;border:1px solid #d1d5db;border-radius:8px;padding:8px;font-size:.75rem}
 .settlement-transfer-row button{font-size:.72rem;padding:8px 10px;white-space:nowrap}
 @media(max-width:760px){.settlement-layout{grid-template-columns:1fr}.settlement-rate-card{align-items:flex-start;flex-direction:column}.settlement-transfer-row{flex-direction:column}.settlement-transfer-row button{width:100%}}
+
+.admin-money-card--test{border-color:#e9d5ff;background:#faf5ff}.admin-money-card--test strong{color:#7c3aed}.settlement-breakdown .settlement-test{grid-column:1/-1;background:#faf5ff;border:1px solid #e9d5ff}.settlement-test strong{color:#7c3aed}.settlement-test small{font-size:.68rem;color:#7c3aed}

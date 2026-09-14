@@ -49,15 +49,14 @@ function Empty({ children }) {
 }
 
 function Overview({ orders, restaurant }) {
-  const paid = orders.filter(order => order.status !== 'CANCELLED' && ['PAID', 'APPROVED'].includes(order.payment?.status))
-  const gross = paid.reduce((sum, order) => sum + Math.max(0, Number(order.subtotal || 0) - Number(order.discountAmount || 0)), 0)
+  const { data: finances, isLoading: financesLoading } = useRestaurantWallet(restaurant.id)
   const clients = new Set(orders.map(order => order.user?.id || order.user?.email).filter(Boolean)).size
   const ranking = getRanking(orders)
   const buyers = orders.filter(order => order.user).slice(0, 5)
 
   const cards = [
     { label: 'Clientes totales', value: clients, detail: 'Personas que hicieron pedidos', icon: Users, tone: 'orange' },
-    { label: 'Ingresos por ventas', value: money(gross), detail: `${paid.length} pagos confirmados`, icon: TrendingUp, tone: 'green' },
+    { label: 'Ventas cobradas reales', value: financesLoading ? '…' : money(finances?.salesTotal), detail: `${finances?.paidOrderCount || 0} pagos reales confirmados`, icon: TrendingUp, tone: 'green' },
     { label: 'Pedidos registrados', value: orders.length, detail: 'Reservas y delivery', icon: ClipboardList, tone: 'violet' },
     { label: 'Plato más pedido', value: ranking[0]?.[0] || 'Sin ventas', detail: ranking[0] ? `${ranking[0][1]} unidades` : 'Aún sin datos', icon: Star, tone: 'gold' },
   ]
@@ -73,6 +72,17 @@ function Overview({ orders, restaurant }) {
         <p>{card.label}</p><strong>{card.value}</strong><small>{card.detail}</small>
       </article>
     })}</div>
+    <section className="rp-panel rp-income-panel">
+      <div className="rp-panel-head"><div><h2>Resumen de tus ingresos</h2><p>Las ventas de prueba no son dinero cobrado ni se pueden retirar.</p></div><Wallet size={20}/></div>
+      {financesLoading ? <p>Cargando ingresos…</p> : <>
+        <div className="rp-income-grid">
+          <div><small>Ganancia neta estimada</small><strong>{money(finances?.restaurantEarnedTotal)}</strong></div>
+          <div><small>Saldo disponible para retirar</small><strong>{money(finances?.balance)}</strong></div>
+          <div className="rp-income-test"><small>Ventas Mercado Pago de prueba · no cobradas</small><strong>{money(finances?.testSalesTotal)}</strong><span>{finances?.testOrderCount || 0} pago(s) sandbox · tu neto estimado sería {money(finances?.testRestaurantNet)}</span></div>
+        </div>
+        {Number(finances?.pendingRestaurantNet || 0) > 0 && <p className="rp-income-note">Tienes {money(finances.pendingRestaurantNet)} netos pendientes de liquidación. El administrador debe acreditarlos antes de que aparezcan como saldo disponible para retiro.</p>}
+      </>}
+    </section>
     <section className="rp-panel">
       <div className="rp-panel-head"><div><h2>Clientes recientes</h2><p>Últimos usuarios que realizaron pedidos</p></div><Users size={20}/></div>
       {buyers.length === 0 ? <Empty>Aún no hay clientes registrados.</Empty> :

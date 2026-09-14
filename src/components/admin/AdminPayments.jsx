@@ -50,6 +50,11 @@ export default function AdminPayments() {
           {label === 'Total recibido' && <small>{summary?.count || 0} pagos Mercado Pago confirmados</small>}
         </article>)}
       </div>
+      <article className="admin-money-card admin-money-card--test">
+        <span>Pagos de prueba Mercado Pago · no cobrados</span>
+        <strong>{summaryLoading ? '…' : `S/ ${Number(summary?.testMonth || 0).toFixed(2)}`}</strong>
+        <small>{summary?.testCount || 0} pagos sandbox confirmados en total</small>
+      </article>
       <div className="admin-section-toolbar">
         <AdminTableFilter value={status} onChange={v => { setStatus(v); setPage(1) }} options={STATUS_OPTIONS} placeholder="Todos los estados" />
       </div>

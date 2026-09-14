@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth0 } from '@auth0/auth0-react'
 import toast from 'react-hot-toast'
@@ -20,6 +20,7 @@ export default function Checkout() {
 
   const [orderType,    setOrderType]    = useState('DELIVERY')  // 'DELIVERY' | 'RESERVATION'
   const [loading,      setLoading]      = useState(false)
+  const [paymentConfig, setPaymentConfig] = useState(null)
   const [notes,        setNotes]        = useState('')
 
   // Campos delivery
@@ -36,6 +37,14 @@ export default function Checkout() {
 
   const subtotal   = getSubtotal()
   const totalItems = getTotalItems()
+
+  useEffect(() => {
+    let active = true
+    api.get('/api/v1/payments/config')
+      .then(({ data }) => { if (active) setPaymentConfig(data.data) })
+      .catch(() => { if (active) setPaymentConfig({ productionEnabled: false, testEnabled: false }) })
+    return () => { active = false }
+  }, [api])
 
   const fillDeliveryAddressFromMap = ({ address, district, rawAddress }) => {
     if (address) setDeliveryAddress(address)
@@ -160,7 +169,7 @@ export default function Checkout() {
   }
 
 
-  const handleSubmit = () => processCheckout('MERCADOPAGO_TEST')
+  const handleSubmit = paymentMode => processCheckout(paymentMode)
 
   return (
     <div className="checkout">
@@ -244,6 +253,7 @@ export default function Checkout() {
               restaurantName={restaurantName}
               subtotal={subtotal}
               orderType={orderType}
+              paymentConfig={paymentConfig}
               onConfirm={handleSubmit}
               loading={loading}
             />

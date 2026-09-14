@@ -8,7 +8,7 @@ const TYPE_LABELS = {
 
 export default function OrderSummary({
   items, restaurantName, subtotal,
-  orderType, onConfirm, loading,
+  orderType, paymentConfig, onConfirm, loading,
 }) {
   return (
     <div className="osummary">
@@ -68,19 +68,25 @@ export default function OrderSummary({
         <span>S/ {subtotal.toFixed(2)}</span>
       </div>
 
-      <button
-        className="osummary-btn osummary-btn--mercadopago"
-        onClick={onConfirm}
-        disabled={loading}
-      >
-        {loading
-          ? <><Loader2 size={18} className="osummary-spinner" /> Procesando...</>
-          : '💳 Pagar con Mercado Pago (prueba)'
-        }
-      </button>
-      <p className="osummary-test-note">
-        Sandbox: no se realizará ningún cobro real.
-      </p>
+      {!paymentConfig ? <p className="osummary-test-note">Verificando medios de pago…</p> : <>
+        {paymentConfig.productionEnabled && <button
+          className="osummary-btn osummary-btn--mercadopago"
+          onClick={() => onConfirm('MERCADOPAGO')}
+          disabled={loading}
+        >
+          {loading ? <><Loader2 size={18} className="osummary-spinner" /> Procesando...</> : '💳 Pagar con Mercado Pago'}
+        </button>}
+        {paymentConfig.testEnabled && <button
+          className="osummary-btn osummary-btn--test"
+          onClick={() => onConfirm('MERCADOPAGO_TEST')}
+          disabled={loading}
+        >
+          {loading ? <><Loader2 size={18} className="osummary-spinner" /> Procesando...</> : '🧪 Probar pago Mercado Pago'}
+        </button>}
+        {paymentConfig.productionEnabled && <p className="osummary-test-note">El pago real cobrará el monto mostrado a través de Mercado Pago.</p>}
+        {!paymentConfig.productionEnabled && paymentConfig.testEnabled && <p className="osummary-test-note">Solo está habilitado el modo de prueba; no se realizará ningún cobro real.</p>}
+        {!paymentConfig.productionEnabled && !paymentConfig.testEnabled && <p className="osummary-test-note">El pago con Mercado Pago no está configurado. Intenta más tarde.</p>}
+      </>}
     </div>
   )
 }

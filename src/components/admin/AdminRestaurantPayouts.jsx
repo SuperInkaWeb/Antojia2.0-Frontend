@@ -49,6 +49,7 @@ export default function AdminRestaurantPayouts() {
           <div><span>Porcentaje admin ({settlements?.commissionPercent}%)</span><strong>{money(selected.adminEarnedTotal)}</strong></div>
           <div><span>Ganancia del restaurante</span><strong>{money(selected.restaurantEarnedTotal)}</strong></div>
           <div className="settlement-wallet"><span>Saldo disponible para retiro</span><strong>{money(selected.walletBalance)}</strong></div>
+          <div className="settlement-test"><span>Ventas de prueba · no cobradas ({selected.testPaidOrderCount || 0})</span><strong>{money(selected.testSalesTotal)}</strong><small>Comisión simulada: {money(selected.testAdminCommission)} · neto simulado: {money(selected.testRestaurantNet)}</small></div>
         </div>
         <button className="settlement-primary" disabled={creditRestaurant.isPending || selected.pendingSales < 0.01} onClick={() => creditRestaurant.mutate(selected.id)}>
           <CircleDollarSign size={17}/>{creditRestaurant.isPending ? 'Acreditando…' : 'Pagar restaurante'}
