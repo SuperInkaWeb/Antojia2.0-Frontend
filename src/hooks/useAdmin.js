@@ -146,6 +146,12 @@ export function useAdminMutations() {
     onError:   (err) => toast.error(err?.response?.data?.message || 'Error al suspender repartidor'),
   })
 
+  const activateDriver = useMutation({
+    mutationFn: (id) => withToken(() => api.patch(`/api/v1/admin/drivers/${id}/activate`)),
+    onSuccess: () => { toast.success('Repartidor activado'); invalidate() },
+    onError:   (err) => toast.error(err?.response?.data?.message || 'Error al activar repartidor'),
+  })
+
   const updateCommission = useMutation({
     mutationFn: (commissionPercent) => withToken(() => api.patch('/api/v1/admin/settlements/commission', { commissionPercent })),
     onSuccess: () => { toast.success('Porcentaje de comisión actualizado'); invalidate() },
@@ -164,5 +170,5 @@ export function useAdminMutations() {
     onError: (err) => toast.error(err?.response?.data?.message || 'No se pudo actualizar el retiro'),
   })
 
-  return { verifyRestaurant, suspendRestaurant, toggleUser, changeRole, verifyDriver, suspendDriver, updateCommission, creditRestaurant, markWithdrawalPaid }
+  return { verifyRestaurant, suspendRestaurant, toggleUser, changeRole, verifyDriver, suspendDriver, activateDriver, updateCommission, creditRestaurant, markWithdrawalPaid }
 }

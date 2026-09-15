@@ -20,7 +20,7 @@ export default function AdminDrivers() {
   const [isVerified, setIsVerified] = useState('')
   const [page,       setPage]       = useState(1)
   const { data, isLoading } = useAdminDrivers({ status, isVerified, page, limit: 15 })
-  const { verifyDriver, suspendDriver } = useAdminMutations()
+  const { verifyDriver, suspendDriver, activateDriver } = useAdminMutations()
 
   const columns = [
     { key: 'user',    label: 'Repartidor', render: d => (
@@ -54,6 +54,13 @@ export default function AdminDrivers() {
             onClick={() => suspendDriver.mutate(d.id)}
             disabled={suspendDriver.isPending}
           >Suspender</button>
+        )}
+        {d.status === 'SUSPENDED' && (
+          <button
+            className="atable-action atable-action--green"
+            onClick={() => activateDriver.mutate(d.id)}
+            disabled={activateDriver.isPending}
+          >Activar</button>
         )}
       </div>
     )},
