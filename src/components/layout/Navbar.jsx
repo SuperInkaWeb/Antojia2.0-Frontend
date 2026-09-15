@@ -19,6 +19,7 @@ export default function Navbar({ cartCount, searchValue = '', onSearchChange, di
   const navigate   = useNavigate()
   const totalItems = useCartStore(s => s.getTotalItems())
   const count      = cartCount ?? totalItems
+  const clearCart  = useCartStore(s => s.clearCart)
 
   const role              = dbUser?.role || null
   const isAdmin           = role === 'ADMIN'
@@ -28,6 +29,7 @@ export default function Navbar({ cartCount, searchValue = '', onSearchChange, di
   const logoDestination   = isDriver ? '/driver' : '/'
 
   const handleLogout = () => {
+    clearCart()
     sessionStorage.removeItem('foodinka_authenticated')
     sessionStorage.removeItem('foodinka_recovery_attempted')
     logout({ logoutParams: { returnTo: window.location.origin } })

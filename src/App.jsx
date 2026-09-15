@@ -19,6 +19,7 @@ import RegisterRestaurant  from './pages/RegisterRestaurant.jsx'
 import Profile from './pages/Profile.jsx'
 import PaymentResult from './pages/PaymentResult.jsx'
 import RegisterAdmin from './pages/RegisterAdmin.jsx'
+import { useCartStore } from './store/cartStore.js'
 
 function AppRoutes() {
   useOnboarding()
@@ -51,6 +52,13 @@ export default function App() {
   const { isLoading, isAuthenticated, loginWithRedirect, error } = useAuth0()
   const recoveryStarted = useRef(false)
   const sessionExpected = sessionStorage.getItem('foodinka_authenticated') === 'true'
+  const clearCart = useCartStore(state => state.clearCart)
+
+  useEffect(() => {
+    // El carrito pertenece a una sesión autenticada; nunca debe quedar
+    // visible al cerrar sesión o cambiar de cuenta.
+    if (!isLoading && !isAuthenticated) clearCart()
+  }, [clearCart, isAuthenticated, isLoading])
 
   useEffect(() => {
     if (isAuthenticated) {
