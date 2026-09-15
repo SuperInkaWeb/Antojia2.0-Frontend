@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { MapPin, Package, ChevronRight, Loader2, Navigation, CheckCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useApi } from '../hooks/useApi.js'
+import { useCurrentUser } from '../hooks/useCurrentUser.js'
 import { api, setAuthToken } from '../config/api.js'
 import Navbar from '../components/layout/Navbar.jsx'
 import DeliveryProofCapture from '../components/delivery/DeliveryProofCapture.jsx'
@@ -14,7 +15,8 @@ const DISTRICTS = ['Miraflores','San Isidro','Barranco','Surco','La Molina','San
 export default function DriverDashboard() {
   const { getAccessTokenSilently, isAuthenticated, user } = useAuth0(); useApi()
   const qc = useQueryClient()
-  const [district, setDistrict] = useState('ALL'), [busy, setBusy] = useState(null)
+  const { data: profile } = useCurrentUser()
+  const [district, setDistrict] = useState('ALL'), [busy, setBusy] = useState(null), [statusBusy, setStatusBusy] = useState(false)
   const [deliveryCode, setDeliveryCode] = useState(''), [proofUrl, setProofUrl] = useState('')
   // Cada cuenta necesita su propia caché: al cambiar de repartidor no deben
   // reutilizarse los pedidos activos ni la lista del repartidor anterior.
@@ -22,6 +24,7 @@ export default function DriverDashboard() {
   const activeOrdersKey = ['driver-active-orders', driverKey]
   const availableOrdersKey = ['driver-orders', driverKey]
   const auth = async () => setAuthToken(await getAccessTokenSilently({ authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE } }))
+  const driver = profile?.driverProfile
   const { data: active = [] } = useQuery({ queryKey: activeOrdersKey, queryFn: async () => { await auth(); return (await api.get('/api/v1/drivers/orders/active')).data.data }, enabled: isAuthenticated && Boolean(driverKey), refetchInterval: 20000 })
   // La bolsa de pedidos es global: todos los repartidores ven todos los READY
   // sin repartidor, sin limitarla al distrito de su perfil.
@@ -40,6 +43,21 @@ export default function DriverDashboard() {
       await qc.invalidateQueries({ queryKey: activeOrdersKey }); await qc.invalidateQueries({ queryKey: availableOrdersKey }); refetch()
     } catch (error) { routeWindow?.close(); toast.error(error.response?.data?.message || 'No se pudo tomar el pedido') }
     finally { setBusy(null) }
+  }
+
+  const toggleAvailability = async () => {
+    const nextStatus = driver?.status === 'AVAILABLE' ? 'OFFLINE' : 'AVAILABLE'
+    setStatusBusy(true)
+    try {
+      await auth()
+      await api.patch('/api/v1/drivers/status', { status: nextStatus })
+      await qc.invalidateQueries({ queryKey: ['current-user'] })
+      toast.success(nextStatus === 'AVAILABLE' ? 'Ya estás disponible para tomar pedidos' : 'Ahora estás desconectado')
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'No se pudo actualizar tu disponibilidad')
+    } finally {
+      setStatusBusy(false)
+    }
   }
 
   const advance = async order => {
@@ -64,6 +82,19 @@ export default function DriverDashboard() {
       ? `${current.deliveryLatitude},${current.deliveryLongitude}`
       : encodeURIComponent(`${current?.deliveryAddress || ''}, ${current?.deliveryDistrict || ''}, Perú`))
   return <div className="ddash"><Navbar/><div className="ddash-inner"><h1 className="ddash-title">Panel de repartidor</h1>
+    {driver && <section className="ddash-availability">
+      <div>
+        <strong>{driver.isVerified ? (driver.status === 'AVAILABLE' ? 'Estás disponible' : 'Estás desconectado') : 'Perfil pendiente de verificación'}</strong>
+        <p>{driver.isVerified ? 'Activa tu disponibilidad para poder tomar pedidos.' : 'Un administrador debe verificar tu perfil antes de tomar pedidos.'}</p>
+      </div>
+      <button
+        className="dorder-accept"
+        onClick={toggleAvailability}
+        disabled={!driver.isVerified || statusBusy || Boolean(active.length)}
+      >
+        {statusBusy ? 'Actualizando…' : driver.status === 'AVAILABLE' ? 'Desconectarme' : 'Ponerme disponible'}
+      </button>
+    </section>}
     {current ? <section className="ddash-active">
       <div className="ddash-active-head"><div><span className="ddash-live">● ENTREGA ACTIVA</span><h2>#{current.orderNumber?.slice(-8)}</h2></div><strong>S/ {current.total?.toFixed(2)}</strong></div>
       <p><Package size={15}/> Recoger en <strong>{current.restaurant?.name}</strong>: {current.restaurant?.address}</p>
