@@ -14,7 +14,7 @@ export default function PaymentResult({ status }) {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const api = useApi()
-  const clearCart = useCartStore(state => state.clearCart)
+  const removePurchasedItems = useCartStore(state => state.removePurchasedItems)
 
   const orderId    = searchParams.get('orderId')
   const mpPaymentId = searchParams.get('payment_id') || searchParams.get('collection_id')
@@ -58,8 +58,17 @@ export default function PaymentResult({ status }) {
 
   const finalStatus = payment?.status || (status === 'failure' ? 'FAILED' : 'PENDING')
   useEffect(() => {
-    if (finalStatus === 'PAID') clearCart()
-  }, [finalStatus, clearCart])
+    if (finalStatus !== 'PAID' || !orderId) return
+
+    const key = `antojia-pending-payment-${orderId}`
+    try {
+      const purchasedItems = JSON.parse(localStorage.getItem(key) || 'null')
+      if (Array.isArray(purchasedItems)) removePurchasedItems(purchasedItems)
+      localStorage.removeItem(key)
+    } catch {
+      localStorage.removeItem(key)
+    }
+  }, [finalStatus, orderId, removePurchasedItems])
 
   // Mientras sincronizamos, mostrar spinner — esto cubre el caso típico de
   // desarrollo local donde el webhook de MP todavía no llegó.

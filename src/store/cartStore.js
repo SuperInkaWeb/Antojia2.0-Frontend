@@ -80,6 +80,26 @@ export const useCartStore = create(
       // ── Vaciar carrito ──────────────────────────────────────
       clearCart: () => set({ items: [], restaurantId: null, restaurantName: null }),
 
+      // ── Retirar únicamente lo incluido en un pedido pagado ──
+      removePurchasedItems: (purchasedItems) => {
+        const quantities = new Map(
+          purchasedItems.map(item => [item.productId, Number(item.quantity) || 0])
+        )
+        const newItems = get().items
+          .map(item => {
+            const purchasedQuantity = quantities.get(item.product.id) || 0
+            return purchasedQuantity > 0
+              ? { ...item, quantity: item.quantity - purchasedQuantity }
+              : item
+          })
+          .filter(item => item.quantity > 0)
+
+        set({
+          items: newItems,
+          ...(newItems.length === 0 && { restaurantId: null, restaurantName: null }),
+        })
+      },
+
       // ── Getters computados ──────────────────────────────────
       getTotalItems: () => get().items.reduce((acc, i) => acc + i.quantity, 0),
 

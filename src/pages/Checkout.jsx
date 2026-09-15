@@ -16,7 +16,7 @@ export default function Checkout() {
   const navigate  = useNavigate()
   const api       = useApi()
   const { user }  = useAuth0()
-  const { items, restaurantId, restaurantName, getSubtotal, getTotalItems, clearCart } = useCartStore()
+  const { items, restaurantId, restaurantName, getSubtotal, getTotalItems, removePurchasedItems } = useCartStore()
 
   const [orderType,    setOrderType]    = useState('DELIVERY')  // 'DELIVERY' | 'RESERVATION'
   const [loading,      setLoading]      = useState(false)
@@ -95,6 +95,10 @@ export default function Checkout() {
     setLoading(true)
 
     try {
+      const purchasedItems = items.map(item => ({
+        productId: item.product.id,
+        quantity: item.quantity,
+      }))
       const coords = deliveryCoords
       // 1. Crear el pedido
       const orderPayload = {
@@ -133,6 +137,7 @@ export default function Checkout() {
         } else {
           window.location.href = prefRes.data.initPoint
         }
+        localStorage.setItem(`antojia-pending-payment-${order.id}`, JSON.stringify(purchasedItems))
         toast.success('Mercado Pago se abrió en una pestaña nueva')
         navigate(`/orders/${order.id}`)
         return
@@ -145,6 +150,7 @@ export default function Checkout() {
         const { data: prefRes } = await api.post('/api/v1/payments/mercadopago/preference', {
           orderId: order.id,
         })
+        localStorage.setItem(`antojia-pending-payment-${order.id}`, JSON.stringify(purchasedItems))
         window.location.href = prefRes.data.initPoint
         return // no quitar el loading: estamos navegando fuera del sitio
       }
@@ -153,7 +159,7 @@ export default function Checkout() {
       await api.post('/api/v1/payments/charge', { orderId: order.id, method: selectedPaymentMethod })
 
       // 3. Limpiar carrito y redirigir
-      clearCart()
+      removePurchasedItems(purchasedItems)
       toast.success('¡Pedido confirmado! 🎉', { duration: 4000 })
       navigate(`/orders/${order.id}`)
 

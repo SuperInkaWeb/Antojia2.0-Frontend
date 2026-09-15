@@ -17,18 +17,31 @@ export default function OrderDetail() {
   const api       = useApi()
   const { data: order, isLoading, isError, refetch } = useOrderDetail(id)
   const [checkingPayment, setCheckingPayment] = useState(false)
-  const clearCart = useCartStore(state => state.clearCart)
+  const removePurchasedItems = useCartStore(state => state.removePurchasedItems)
 
   useEffect(() => {
-    if (order?.payment?.status === 'PAID') clearCart()
-  }, [clearCart, order?.payment?.status])
+    if (order?.payment?.status !== 'PAID') return
+
+    const key = `antojia-pending-payment-${order.id}`
+    try {
+      const storedItems = JSON.parse(localStorage.getItem(key) || 'null')
+      if (Array.isArray(storedItems)) removePurchasedItems(storedItems)
+      localStorage.removeItem(key)
+    } catch {
+      localStorage.removeItem(key)
+    }
+  }, [removePurchasedItems, order?.id, order?.items, order?.payment?.status])
 
   const handleCheckPayment = async () => {
     setCheckingPayment(true)
     try {
       const { data } = await api.post('/api/v1/payments/mercadopago/sync', { orderId: id })
       if (data.data?.status === 'PAID') {
-        clearCart()
+        const purchasedItems = (order?.items || []).map(item => ({
+          productId: item.productId,
+          quantity: item.quantity,
+        }))
+        removePurchasedItems(purchasedItems)
         toast.success('¡Pago confirmado! 🎉')
       } else if (data.data?.status === 'PENDING') {
         toast('Mercado Pago todavía no confirma el pago. Intenta de nuevo en unos segundos.')
