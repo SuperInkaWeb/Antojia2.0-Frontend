@@ -56,7 +56,7 @@ function Overview({ orders, restaurant }) {
 
   const cards = [
     { label: 'Clientes totales', value: clients, detail: 'Personas que hicieron pedidos', icon: Users, tone: 'orange' },
-    { label: 'Ventas cobradas reales', value: financesLoading ? '…' : money(finances?.salesTotal), detail: `${finances?.paidOrderCount || 0} pagos reales confirmados`, icon: TrendingUp, tone: 'green' },
+    { label: 'Ventas registradas', value: financesLoading ? '…' : money(finances?.recordedSalesTotal ?? finances?.salesTotal), detail: `${(finances?.paidOrderCount || 0) + (finances?.testOrderCount || 0)} pagos confirmados`, icon: TrendingUp, tone: 'green' },
     { label: 'Pedidos registrados', value: orders.length, detail: 'Reservas y delivery', icon: ClipboardList, tone: 'violet' },
     { label: 'Plato más pedido', value: ranking[0]?.[0] || 'Sin ventas', detail: ranking[0] ? `${ranking[0][1]} unidades` : 'Aún sin datos', icon: Star, tone: 'gold' },
   ]
@@ -233,10 +233,14 @@ function Promotions({ restaurantId, orders }) {
 
 function Billing({ orders, restaurant }) {
   const [ticket, setTicket] = useState(null)
+  const [search, setSearch] = useState('')
   const paid = orders.filter(order => ['PAID', 'APPROVED'].includes(order.payment?.status))
+  const query = search.trim().toLowerCase()
+  const filtered = paid.filter(order => `${order.orderNumber || ''} ${order.user?.name || ''}`.toLowerCase().includes(query))
   return <section className="rp-panel">
     <div className="rp-panel-head"><div><h1>Facturación</h1><p>Historial de cobros y tickets de venta en horario del Perú.</p></div><FileText size={21}/></div>
-    {paid.length === 0 ? <Empty>Aún no hay pagos confirmados.</Empty> : <div className="rp-table-wrap"><table className="rp-table"><thead><tr><th>Venta</th><th>Fecha y hora</th><th>Cliente</th><th>Total</th><th></th></tr></thead><tbody>{paid.map(order => <tr key={order.id}><td>#{order.orderNumber?.slice(-8) || order.id.slice(-8)}</td><td>{peruDate(order.createdAt)}</td><td>{order.user?.name || 'Usuario'}</td><td><strong>{money(order.total)}</strong></td><td><button onClick={() => setTicket(order)}>Ver ticket <ChevronRight size={14}/></button></td></tr>)}</tbody></table></div>}
+    {paid.length > 0 && <div className="rp-toolbar"><label><Search size={16}/><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar por código de factura o nombre completo"/></label></div>}
+    {paid.length === 0 ? <Empty>Aún no hay pagos confirmados.</Empty> : filtered.length === 0 ? <Empty>No encontramos facturas con ese filtro.</Empty> : <div className="rp-table-wrap"><table className="rp-table"><thead><tr><th>Factura / venta</th><th>Fecha y hora</th><th>Cliente</th><th>Total</th><th></th></tr></thead><tbody>{filtered.map(order => <tr key={order.id}><td>#{order.orderNumber?.slice(-8) || order.id.slice(-8)}</td><td>{peruDate(order.createdAt)}</td><td>{order.user?.name || 'Usuario'}</td><td><strong>{money(order.total)}</strong></td><td><button onClick={() => setTicket(order)}>Ver ticket <ChevronRight size={14}/></button></td></tr>)}</tbody></table></div>}
     {ticket && <div className="rp-ticket-overlay" onClick={() => setTicket(null)}><article className="rp-ticket" onClick={e => e.stopPropagation()}><button className="rp-ticket-close" onClick={() => setTicket(null)}><X/></button><Store size={32}/><h2>{restaurant.name}</h2><p>Ticket de venta</p><hr/><div><span>Pedido</span><b>#{ticket.orderNumber?.slice(-8)}</b></div><div><span>Fecha</span><b>{peruDate(ticket.createdAt)}</b></div><div><span>Cliente</span><b>{ticket.user?.name || 'Usuario'}</b></div><hr/>{ticket.items?.map(item => <div key={item.id}><span>{item.quantity}× {itemName(item)}</span><b>{money(item.subtotal)}</b></div>)}<hr/><div className="rp-ticket-total"><span>Total</span><b>{money(ticket.total)}</b></div><small>Pago confirmado por Mercado Pago</small></article></div>}
   </section>
 }
