@@ -36,13 +36,20 @@ export default function PaymentResult({ status }) {
         // El webhook puede llegar unos segundos después de la redirección.
         // Reintentamos para no dejar carrito/pedido en estado pendiente.
         for (let attempt = 0; attempt < 6 && !cancelled; attempt += 1) {
-          const { data } = await api.post('/api/v1/payments/mercadopago/sync', {
-            orderId,
-            mpPaymentId,
-            result: status,
-          })
-          if (!cancelled) setPayment(data.data)
-          if (data.data?.status === 'PAID' || data.data?.status === 'FAILED') break
+          try {
+            const { data } = await api.post('/api/v1/payments/mercadopago/sync', {
+              orderId,
+              mpPaymentId,
+              result: status,
+            })
+            if (!cancelled) setPayment(data.data)
+            if (data.data?.status === 'PAID' || data.data?.status === 'FAILED') break
+          } catch (err) {
+            // Al volver desde MP, Auth0 puede tardar un instante en restaurar
+            // el token. Reintentamos la sincronización para que el carrito no
+            // dependa de que la primera petición haya salido autenticada.
+            if (attempt === 5) throw err
+          }
           if (attempt < 5) await new Promise(resolve => setTimeout(resolve, 2000))
         }
       } catch (err) {

@@ -61,6 +61,18 @@ export default function App() {
   }, [clearCart, isAuthenticated, isLoading])
 
   useEffect(() => {
+    // El checkout de Mercado Pago en modo prueba se abre en otra pestaña.
+    // Zustand persiste el carrito, pero no sincroniza automáticamente el
+    // estado en memoria cuando otra pestaña lo modifica.
+    const syncCartFromAnotherTab = event => {
+      if (event.key === 'antojia-cart') useCartStore.persist.rehydrate()
+    }
+
+    window.addEventListener('storage', syncCartFromAnotherTab)
+    return () => window.removeEventListener('storage', syncCartFromAnotherTab)
+  }, [])
+
+  useEffect(() => {
     if (isAuthenticated) {
       sessionStorage.setItem('foodinka_authenticated', 'true')
       sessionStorage.removeItem('foodinka_recovery_attempted')
