@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft, MapPin, Phone, Clock, Calendar, Bike, User, RefreshCw } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -6,6 +6,7 @@ import Navbar from '../components/layout/Navbar.jsx'
 import OrderStatusBadge, { OrderProgressBar } from '../components/orders/OrderStatusBadge.jsx'
 import { useOrderDetail } from '../hooks/useOrders.js'
 import { useApi } from '../hooks/useApi.js'
+import { useCartStore } from '../store/cartStore.js'
 import './OrderDetail.css'
 
 const PLACEHOLDER = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200&q=80'
@@ -16,12 +17,18 @@ export default function OrderDetail() {
   const api       = useApi()
   const { data: order, isLoading, isError, refetch } = useOrderDetail(id)
   const [checkingPayment, setCheckingPayment] = useState(false)
+  const clearCart = useCartStore(state => state.clearCart)
+
+  useEffect(() => {
+    if (order?.payment?.status === 'PAID') clearCart()
+  }, [clearCart, order?.payment?.status])
 
   const handleCheckPayment = async () => {
     setCheckingPayment(true)
     try {
       const { data } = await api.post('/api/v1/payments/mercadopago/sync', { orderId: id })
       if (data.data?.status === 'PAID') {
+        clearCart()
         toast.success('¡Pago confirmado! 🎉')
       } else if (data.data?.status === 'PENDING') {
         toast('Mercado Pago todavía no confirma el pago. Intenta de nuevo en unos segundos.')

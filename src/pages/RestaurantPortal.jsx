@@ -77,7 +77,7 @@ function Overview({ orders, restaurant }) {
       <div className="rp-panel-head"><div><h2>Resumen de tus ingresos</h2><p>Las ventas de prueba no son dinero cobrado ni se pueden retirar.</p></div><Wallet size={20}/></div>
       {financesLoading ? <p>Cargando ingresos…</p> : <>
         <div className="rp-income-grid">
-          <div><small>Ganancia neta estimada</small><strong>{money(finances?.restaurantEarnedTotal)}</strong></div>
+          <div><small>Ganancia neta estimada</small><strong>{money(finances?.recordedRestaurantNet ?? finances?.restaurantEarnedTotal)}</strong></div>
           <div><small>Saldo disponible para retirar</small><strong>{money(finances?.balance)}</strong></div>
           <div className="rp-income-test"><small>Ventas Mercado Pago de prueba · no cobradas</small><strong>{money(finances?.testSalesTotal)}</strong><span>{finances?.testOrderCount || 0} pago(s) sandbox · tu neto estimado sería {money(finances?.testRestaurantNet)}</span></div>
         </div>
