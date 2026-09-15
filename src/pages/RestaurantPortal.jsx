@@ -50,9 +50,10 @@ function Empty({ children }) {
 
 function Overview({ orders, restaurant }) {
   const { data: finances, isLoading: financesLoading } = useRestaurantWallet(restaurant.id)
-  const clients = new Set(orders.map(order => order.user?.id || order.user?.email).filter(Boolean)).size
-  const ranking = getRanking(orders)
-  const buyers = orders.filter(order => order.user && order.payment?.status === 'PAID').slice(0, 5)
+  const validOrders = orders.filter(order => order.payment?.status !== 'FAILED' && !(order.payment?.status === 'PENDING' && order.status === 'PENDING'))
+  const clients = new Set(validOrders.map(order => order.user?.id || order.user?.email).filter(Boolean)).size
+  const ranking = getRanking(validOrders)
+  const buyers = validOrders.filter(order => order.user).slice(0, 5)
 
   const cards = [
     { label: 'Clientes totales', value: clients, detail: 'Personas que hicieron pedidos', icon: Users, tone: 'orange' },
@@ -96,13 +97,14 @@ function Overview({ orders, restaurant }) {
 }
 
 function Sales({ orders }) {
+  const validOrders = orders.filter(order => order.payment?.status !== 'FAILED' && !(order.payment?.status === 'PENDING' && order.status === 'PENDING'))
   const [search, setSearch] = useState('')
   const [sort, setSort] = useState('recent')
-  const ranking = useMemo(() => getRanking(orders), [orders])
+  const ranking = useMemo(() => getRanking(validOrders), [validOrders])
   const rankIndex = useMemo(() => new Map(ranking.map(([name], index) => [name, index])), [ranking])
   const rows = useMemo(() => {
     const query = search.trim().toLowerCase()
-    const result = orders.filter(order => {
+    const result = validOrders.filter(order => {
       const products = order.items?.map(itemName).join(' ') || ''
       return `${order.user?.name || ''} ${products}`.toLowerCase().includes(query)
     })
@@ -112,7 +114,7 @@ function Sales({ orders }) {
       return sort === 'best' ? aRank - bRank : bRank - aRank
     })
     return result
-  }, [orders, rankIndex, search, sort])
+  }, [validOrders, rankIndex, search, sort])
 
   return <section className="rp-panel">
     <div className="rp-panel-head"><div><h1>Datos de venta</h1><p>Conoce quién pidió, qué productos compró y cuánto pagó.</p></div></div>

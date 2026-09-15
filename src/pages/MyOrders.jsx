@@ -103,7 +103,7 @@ export default function MyOrders() {
   const orders     = data?.data || []
   const totalPages = data?.pagination?.totalPages || 1
 
-  const visibleOrders = orders.filter(o => o.payment?.status !== 'FAILED')
+  const visibleOrders = orders.filter(o => o.payment?.status !== 'FAILED' && !(o.payment?.status === 'PENDING' && o.status === 'PENDING'))
   const active  = visibleOrders.filter(o => !['DELIVERED', 'CANCELLED'].includes(o.status))
   const history = visibleOrders.filter(o =>  ['DELIVERED', 'CANCELLED'].includes(o.status))
 
