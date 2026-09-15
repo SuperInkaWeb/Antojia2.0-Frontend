@@ -128,7 +128,6 @@ export default function Checkout() {
         const { data: prefRes } = await api.post('/api/v1/payments/mercadopago/test-preference', {
           orderId: order.id,
         })
-        clearCart()
         if (mpWindow) {
           mpWindow.location.href = prefRes.data.initPoint
         } else {
@@ -146,7 +145,6 @@ export default function Checkout() {
         const { data: prefRes } = await api.post('/api/v1/payments/mercadopago/preference', {
           orderId: order.id,
         })
-        clearCart()
         window.location.href = prefRes.data.initPoint
         return // no quitar el loading: estamos navegando fuera del sitio
       }

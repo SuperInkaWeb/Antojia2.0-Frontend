@@ -164,7 +164,7 @@ function CustomerDetail({ detail, isLoading, onClose }) {
 
 function MenuPreparation({ orders }) {
   const updateStatus = useUpdateOrderStatus()
-  const deliveryOrders = orders.filter(order => order.type === 'DELIVERY' && ['PENDING', 'CONFIRMED', 'PREPARING', 'READY'].includes(order.status))
+  const deliveryOrders = orders.filter(order => order.type === 'DELIVERY' && order.payment?.status === 'PAID' && ['PENDING', 'CONFIRMED', 'PREPARING', 'READY'].includes(order.status))
   const advance = async (order) => {
     const status = ['PENDING', 'CONFIRMED'].includes(order.status) ? 'PREPARING' : 'READY'
     try { await updateStatus.mutateAsync({ orderId: order.id, status }) }

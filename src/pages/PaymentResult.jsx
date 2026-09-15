@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom'
 import { CheckCircle, Clock, XCircle, Loader2 } from 'lucide-react'
 import { useApi } from '../hooks/useApi.js'
 import Navbar from '../components/layout/Navbar.jsx'
+import { useCartStore } from '../store/cartStore.js'
 import './PaymentResult.css'
 
 // Página de retorno de Mercado Pago (Checkout Pro).
@@ -13,6 +14,7 @@ export default function PaymentResult({ status }) {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const api = useApi()
+  const clearCart = useCartStore(state => state.clearCart)
 
   const orderId    = searchParams.get('orderId')
   const mpPaymentId = searchParams.get('payment_id') || searchParams.get('collection_id')
@@ -47,6 +49,11 @@ export default function PaymentResult({ status }) {
     return () => { cancelled = true }
   }, [orderId, mpPaymentId])
 
+  const finalStatus = payment?.status || (status === 'failure' ? 'FAILED' : 'PENDING')
+  useEffect(() => {
+    if (finalStatus === 'PAID') clearCart()
+  }, [finalStatus, clearCart])
+
   // Mientras sincronizamos, mostrar spinner — esto cubre el caso típico de
   // desarrollo local donde el webhook de MP todavía no llegó.
   if (syncing) {
@@ -61,8 +68,6 @@ export default function PaymentResult({ status }) {
       </div>
     )
   }
-
-  const finalStatus = payment?.status || (status === 'failure' ? 'FAILED' : 'PENDING')
 
   const view = {
     PAID: {

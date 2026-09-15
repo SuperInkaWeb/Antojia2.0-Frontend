@@ -240,7 +240,7 @@ export default function RestaurantDashboard() {
     updateStatus({ orderId, status })
   }, [updateStatus])
 
-  const orders     = data?.data || []
+  const orders     = (data?.data || []).filter(order => order.payment?.status === 'PAID')
   const totalPages = data?.pagination?.totalPages || 1
 
   // ── Sin acceso ─────────────────────────────────────────────
