@@ -36,6 +36,7 @@ export default function PaymentResult({ status }) {
         const { data } = await api.post('/api/v1/payments/mercadopago/sync', {
           orderId,
           mpPaymentId,
+          result: status,
         })
         if (!cancelled) setPayment(data.data)
       } catch (err) {

@@ -52,7 +52,7 @@ function Overview({ orders, restaurant }) {
   const { data: finances, isLoading: financesLoading } = useRestaurantWallet(restaurant.id)
   const clients = new Set(orders.map(order => order.user?.id || order.user?.email).filter(Boolean)).size
   const ranking = getRanking(orders)
-  const buyers = orders.filter(order => order.user).slice(0, 5)
+  const buyers = orders.filter(order => order.user && order.payment?.status === 'PAID').slice(0, 5)
 
   const cards = [
     { label: 'Clientes totales', value: clients, detail: 'Personas que hicieron pedidos', icon: Users, tone: 'orange' },
