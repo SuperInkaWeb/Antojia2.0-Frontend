@@ -33,12 +33,18 @@ export default function PaymentResult({ status }) {
         return
       }
       try {
-        const { data } = await api.post('/api/v1/payments/mercadopago/sync', {
-          orderId,
-          mpPaymentId,
-          result: status,
-        })
-        if (!cancelled) setPayment(data.data)
+        // El webhook puede llegar unos segundos después de la redirección.
+        // Reintentamos para no dejar carrito/pedido en estado pendiente.
+        for (let attempt = 0; attempt < 6 && !cancelled; attempt += 1) {
+          const { data } = await api.post('/api/v1/payments/mercadopago/sync', {
+            orderId,
+            mpPaymentId,
+            result: status,
+          })
+          if (!cancelled) setPayment(data.data)
+          if (data.data?.status === 'PAID' || data.data?.status === 'FAILED') break
+          if (attempt < 5) await new Promise(resolve => setTimeout(resolve, 2000))
+        }
       } catch (err) {
         if (!cancelled) setError(err?.response?.data?.message || 'No se pudo verificar el pago')
       } finally {
@@ -48,7 +54,7 @@ export default function PaymentResult({ status }) {
 
     sync()
     return () => { cancelled = true }
-  }, [orderId, mpPaymentId])
+  }, [api, mpPaymentId, orderId, status])
 
   const finalStatus = payment?.status || (status === 'failure' ? 'FAILED' : 'PENDING')
   useEffect(() => {
