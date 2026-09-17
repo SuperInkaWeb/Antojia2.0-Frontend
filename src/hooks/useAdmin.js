@@ -143,6 +143,24 @@ export function useMarketingPayoutMutation() {
   })
 }
 
+export function useMarketingCreditRestaurant() {
+  const { getAccessTokenSilently } = useAuth0()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async id => {
+      const token = await getAccessTokenSilently({ authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE } })
+      setAuthToken(token)
+      return api.post(`/api/v1/admin-marketing/settlements/restaurants/${id}/credit`)
+    },
+    onSuccess: () => {
+      toast.success('Saldo acreditado al restaurante')
+      qc.invalidateQueries({ queryKey: ['marketing-settlements'] })
+      qc.invalidateQueries({ queryKey: ['marketing-analytics'] })
+    },
+    onError: err => toast.error(err?.response?.data?.message || 'No se pudo acreditar el saldo'),
+  })
+}
+
 export function useAdminDrivers(params = {}) {
   return useAuthenticatedQuery('admin-drivers', '/api/v1/admin/drivers', params)
 }
