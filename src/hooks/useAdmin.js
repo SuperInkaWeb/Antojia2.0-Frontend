@@ -109,12 +109,12 @@ export function useMarketingAdminInviteMutations() {
   const create = useMutation({
     mutationFn: () => withToken(() => api.post('/api/v1/admin/marketing-admins/link')),
     onSuccess: () => { toast.success('Enlace de registro creado'); invalidate() },
-    onError: err => toast.error(err?.response?.data?.message || 'No se pudo crear el enlace'),
+    onError: err => toast.error(err?.response?.data?.message || (err?.response?.status === 500 ? 'No se pudo crear el enlace. Verifica que el backend y las migraciones estén actualizados.' : 'No se pudo crear el enlace')),
   })
   const refreshLink = useMutation({
     mutationFn: id => withToken(() => api.post(`/api/v1/admin/marketing-admins/${id}/link`)),
     onSuccess: () => { toast.success('Enlace de registro renovado'); invalidate() },
-    onError: err => toast.error(err?.response?.data?.message || 'No se pudo renovar el enlace'),
+    onError: err => toast.error(err?.response?.data?.message || (err?.response?.status === 500 ? 'No se pudo renovar el enlace. Verifica que el backend y las migraciones estén actualizados.' : 'No se pudo renovar el enlace')),
   })
   const approve = useMutation({
     mutationFn: id => withToken(() => api.patch(`/api/v1/admin/marketing-admins/${id}/approve`)),

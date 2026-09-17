@@ -7,7 +7,7 @@ import './AdminAdministrators.css'
 export default function AdminAdministrators() {
   const [period, setPeriod] = useState('month')
   const [share, setShare] = useState(null)
-  const { data: response, isLoading } = useMarketingAdmins(period)
+  const { data: response, isLoading, isError } = useMarketingAdmins(period)
   const mutations = useMarketingAdminInviteMutations()
   const data = response?.data
   const invites = data?.invites || []
@@ -40,8 +40,9 @@ export default function AdminAdministrators() {
     <section className="admin-marketing-accounts">
       <div className="admin-section-toolbar">
         <div><strong>Cuentas de administrador de marketing</strong><p>{data?.slotsUsed ?? 0} de 2 enlaces/cuentas creados</p></div>
-        <button onClick={createLink} disabled={mutations.create.isPending || (data?.slotsUsed ?? 0) >= 2}>Crear enlace de registro</button>
+        <button onClick={createLink} disabled={isLoading || isError || mutations.create.isPending || (data?.slotsUsed ?? 0) >= 2}>Crear enlace de registro</button>
       </div>
+      {isError && <p className="admin-marketing-error">No se pudieron cargar las invitaciones. Verifica que el backend esté actualizado y que sus migraciones estén aplicadas.</p>}
       <p className="admin-marketing-help">Comparte el enlace con la persona. Podrá crear su cuenta de Auth0 o iniciar sesión y se le abrirá el dashboard de marketing. El enlace vence en 7 días.</p>
       {share && <div className="admin-marketing-share"><label htmlFor="marketing-share-link">Enlace listo para compartir</label><input id="marketing-share-link" readOnly value={share.url} onFocus={event => event.target.select()}/><button onClick={() => navigator.clipboard?.writeText(share.url)}>Copiar enlace</button></div>}
       <div className="admin-marketing-invites">{invites.length === 0 ? <p>Todavía no se han creado enlaces.</p> : invites.map(invite => <article key={invite.id}>
