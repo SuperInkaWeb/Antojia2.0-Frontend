@@ -23,9 +23,10 @@ export default function Navbar({ cartCount, searchValue = '', onSearchChange, di
 
   const role              = dbUser?.role || null
   const isAdmin           = role === 'ADMIN'
+  const isMarketingAdmin  = role === 'MARKETING_ADMIN'
   const isDriver          = role === 'DELIVERY'
   const isRestaurantOwner = role === 'RESTAURANT_OWNER'
-  const isConsumer        = isAuthenticated && !isAdmin && !isDriver && !isRestaurantOwner
+  const isConsumer        = isAuthenticated && !isAdmin && !isMarketingAdmin && !isDriver && !isRestaurantOwner
   const logoDestination   = isDriver ? '/driver' : '/'
 
   const handleLogout = () => {
@@ -175,6 +176,7 @@ export default function Navbar({ cartCount, searchValue = '', onSearchChange, di
                 {isAdmin && (
                   <Link to="/admin" onClick={() => setMenuOpen(false)}>Dashboard del administrador</Link>
                 )}
+                {isMarketingAdmin && <Link to="/adminMark" onClick={() => setMenuOpen(false)}>Dashboard de marketing</Link>}
                 <button className="navbar-drawer-logout" onClick={handleLogout}><LogOut size={16}/> Cerrar sesión</button>
               </>
           }

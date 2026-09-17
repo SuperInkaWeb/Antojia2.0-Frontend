@@ -85,6 +85,32 @@ export function useAdminSettlements() {
   return useAuthenticatedQuery('admin-settlements', '/api/v1/admin/settlements', {}, { refetchInterval: 30000 })
 }
 
+export function useMarketingAnalytics(period = 'month') {
+  return useAuthenticatedQuery('marketing-analytics', '/api/v1/admin-marketing/analytics', { period }, { refetchInterval: 60000 })
+}
+
+export function useMarketingSettlements() {
+  return useAuthenticatedQuery('marketing-settlements', '/api/v1/admin-marketing/settlements', {}, { refetchInterval: 30000 })
+}
+
+export function useMarketingAdmins(period = 'month') {
+  return useAuthenticatedQuery('marketing-admins', '/api/v1/admin/marketing-admins', { period })
+}
+
+export function useMarketingPayoutMutation() {
+  const { getAccessTokenSilently } = useAuth0()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ id, transferReference }) => {
+      const token = await getAccessTokenSilently({ authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE } })
+      setAuthToken(token)
+      return api.patch(`/api/v1/admin-marketing/settlements/withdrawals/${id}/paid`, { transferReference })
+    },
+    onSuccess: () => { toast.success('Retiro marcado como transferido'); qc.invalidateQueries({ queryKey: ['marketing-settlements'] }) },
+    onError: err => toast.error(err?.response?.data?.message || 'No se pudo actualizar el retiro'),
+  })
+}
+
 export function useAdminDrivers(params = {}) {
   return useAuthenticatedQuery('admin-drivers', '/api/v1/admin/drivers', params)
 }

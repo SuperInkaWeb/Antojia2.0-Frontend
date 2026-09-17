@@ -24,6 +24,7 @@ export function useOnboarding() {
           DELIVERY: '/driver',
           RESTAURANT_OWNER: '/restaurant-dashboard',
           ADMIN: '/admin',
+          MARKETING_ADMIN: '/adminMark',
           CONSUMER: '/',
         }
         const loginRole = sessionStorage.getItem('foodinka_login_role')

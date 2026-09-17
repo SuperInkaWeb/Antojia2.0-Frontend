@@ -1,7 +1,8 @@
 import { useNavigate } from 'react-router-dom'
-import { LayoutDashboard, Store, Users, ShoppingBag, CreditCard, Bike, LogOut, ChefHat, Wallet } from 'lucide-react'
+import { LayoutDashboard, Store, Users, ShoppingBag, CreditCard, Bike, LogOut, ChefHat, Wallet, ShieldCheck } from 'lucide-react'
 import { useAuth0 } from '@auth0/auth0-react'
 import './AdminSidebar.css'
+import { api, setAuthToken } from '../../config/api.js'
 
 const ICONS = {
   metrics:     LayoutDashboard,
@@ -11,10 +12,11 @@ const ICONS = {
   payments:    CreditCard,
   settlements: Wallet,
   drivers:     Bike,
+  administrators: ShieldCheck,
 }
 
 export default function AdminSidebar({ active, onChange, sections }) {
-  const { logout } = useAuth0()
+  const { logout, getAccessTokenSilently } = useAuth0()
   const navigate   = useNavigate()
 
   return (
@@ -47,7 +49,12 @@ export default function AdminSidebar({ active, onChange, sections }) {
       <div className="sidebar-footer">
         <button
           className="sidebar-logout"
-          onClick={() => {
+          onClick={async () => {
+            try {
+              const token = await getAccessTokenSilently({ authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE } })
+              setAuthToken(token)
+              await api.post('/api/v1/auth/admin-session/end')
+            } catch { /* El cierre de Auth0 debe continuar aunque falle el registro. */ }
             sessionStorage.removeItem('foodinka_authenticated')
             sessionStorage.removeItem('foodinka_recovery_attempted')
             logout({ logoutParams: { returnTo: window.location.origin } })
