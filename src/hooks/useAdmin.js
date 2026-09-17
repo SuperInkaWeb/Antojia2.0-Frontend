@@ -93,8 +93,8 @@ export function useMarketingSettlements() {
   return useAuthenticatedQuery('marketing-settlements', '/api/v1/admin-marketing/settlements', {}, { refetchInterval: 30000 })
 }
 
-export function useMarketingAdmins(period = 'month') {
-  return useAuthenticatedQuery('marketing-admins', '/api/v1/admin/marketing-admins', { period })
+export function useMarketingAdmins(period = 'month', date) {
+  return useAuthenticatedQuery('marketing-admins', '/api/v1/admin/marketing-admins', { period, date })
 }
 
 export function useMarketingAdminInviteMutations() {

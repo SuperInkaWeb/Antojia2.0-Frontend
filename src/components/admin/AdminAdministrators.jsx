@@ -1,13 +1,95 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useMarketingAdmins, useMarketingAdminInviteMutations } from '../../hooks/useAdmin.js'
 import './AdminSection.css'
 import './AdminAdministrators.css'
 
+const limaDate = value => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Lima', year: 'numeric', month: '2-digit', day: '2-digit' }).format(value)
+const dateFromKey = key => new Date(`${key}T12:00:00Z`)
+const dateKeyOffset = (key, offset) => {
+  const date = dateFromKey(key)
+  date.setUTCDate(date.getUTCDate() + offset)
+  return date.toISOString().slice(0, 10)
+}
+const hourInLima = value => new Intl.DateTimeFormat('en-GB', { timeZone: 'America/Lima', hour: '2-digit', hourCycle: 'h23' }).format(new Date(value))
+
+function makeBuckets(period, selectedDate) {
+  if (period === 'day') return Array.from({ length: 24 }, (_, hour) => ({ key: String(hour).padStart(2, '0'), label: hour % 3 === 0 ? String(hour).padStart(2, '0') : '', title: `${String(hour).padStart(2, '0')}:00` }))
+  if (period === 'week') return Array.from({ length: 7 }, (_, index) => {
+    const key = dateKeyOffset(selectedDate, index - 6)
+    return { key, label: new Intl.DateTimeFormat('es-PE', { timeZone: 'America/Lima', weekday: 'short' }).format(dateFromKey(key)), title: new Intl.DateTimeFormat('es-PE', { timeZone: 'America/Lima', dateStyle: 'medium' }).format(dateFromKey(key)) }
+  })
+  if (period === 'year') return Array.from({ length: 12 }, (_, index) => {
+    const key = `${selectedDate.slice(0, 4)}-${String(index + 1).padStart(2, '0')}`
+    return { key, label: new Intl.DateTimeFormat('es-PE', { month: 'short', timeZone: 'America/Lima' }).format(new Date(`${key}-15T12:00:00Z`)), title: new Intl.DateTimeFormat('es-PE', { month: 'long', year: 'numeric', timeZone: 'America/Lima' }).format(new Date(`${key}-15T12:00:00Z`)) }
+  })
+  const [year, month] = selectedDate.split('-').map(Number)
+  const count = new Date(Date.UTC(year, month, 0)).getUTCDate()
+  return Array.from({ length: count }, (_, index) => {
+    const key = `${selectedDate.slice(0, 7)}-${String(index + 1).padStart(2, '0')}`
+    return { key, label: String(index + 1), title: new Intl.DateTimeFormat('es-PE', { timeZone: 'America/Lima', dateStyle: 'medium' }).format(dateFromKey(key)) }
+  })
+}
+
+function getBucketKey(value, period) {
+  const date = new Date(value)
+  if (period === 'day') return hourInLima(date)
+  const key = limaDate(date)
+  return period === 'year' ? key.slice(0, 7) : key
+}
+
+function MarketingAdminSessionChart({ admin, period, selectedDate }) {
+  const buckets = useMemo(() => makeBuckets(period, selectedDate), [period, selectedDate])
+  const totals = new Map(buckets.map(bucket => [bucket.key, { entries: 0, exits: 0 }]))
+  for (const session of admin.adminSessions) {
+    const entry = totals.get(getBucketKey(session.startedAt, period))
+    if (entry) entry.entries += 1
+    if (session.endedAt) {
+      const exit = totals.get(getBucketKey(session.endedAt, period))
+      if (exit) exit.exits += 1
+    }
+  }
+  const maxValue = Math.max(1, ...[...totals.values()].flatMap(value => [value.entries, value.exits]))
+  const axisMax = Math.max(1, Math.ceil(maxValue / 4) * 4)
+  const width = Math.max(760, buckets.length * 38 + 88)
+  const height = 270
+  const left = 56
+  const right = 16
+  const top = 16
+  const bottom = 48
+  const plotWidth = width - left - right
+  const plotHeight = height - top - bottom
+  const groupWidth = plotWidth / buckets.length
+  const barWidth = Math.min(12, groupWidth * 0.28)
+  const y = value => top + plotHeight - value / axisMax * plotHeight
+
+  return <div className="admin-admin-chart-scroll"><svg className="admin-admin-session-svg" style={{ width: `${width}px` }} viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`Inicios y cierres de sesión de ${admin.email}`}>
+    {[0, 1, 2, 3, 4].map(tick => {
+      const value = axisMax * tick / 4
+      const yPosition = y(value)
+      return <g key={tick}><line x1={left} x2={width - right} y1={yPosition} y2={yPosition} className="admin-admin-gridline"/><text x={left - 9} y={yPosition + 4} textAnchor="end" className="admin-admin-axis-label">{value}</text></g>
+    })}
+    {buckets.map((bucket, index) => {
+      const value = totals.get(bucket.key)
+      const center = left + groupWidth * (index + 0.5)
+      const entryHeight = value.entries ? Math.max(2, value.entries / axisMax * plotHeight) : 0
+      const exitHeight = value.exits ? Math.max(2, value.exits / axisMax * plotHeight) : 0
+      return <g key={bucket.key}>
+        <rect x={center - barWidth - 1} y={top + plotHeight - entryHeight} width={barWidth} height={entryHeight} rx="3" className="admin-admin-entry-bar"><title>{`${bucket.title}: ${value.entries} inicios de sesión`}</title></rect>
+        <rect x={center + 1} y={top + plotHeight - exitHeight} width={barWidth} height={exitHeight} rx="3" className="admin-admin-exit-bar"><title>{`${bucket.title}: ${value.exits} cierres de sesión`}</title></rect>
+        {bucket.label && <text x={center} y={height - 26} textAnchor="middle" className="admin-admin-period-label">{bucket.label}</text>}
+      </g>
+    })}
+    <text x="15" y={top + plotHeight / 2} transform={`rotate(-90 15 ${top + plotHeight / 2})`} textAnchor="middle" className="admin-admin-axis-title">Sesiones</text>
+  </svg></div>
+}
+
 export default function AdminAdministrators() {
+  const today = limaDate(new Date())
   const [period, setPeriod] = useState('month')
+  const [selectedDate, setSelectedDate] = useState(today)
   const [share, setShare] = useState(null)
-  const { data: response, isLoading, isError } = useMarketingAdmins(period)
+  const { data: response, isLoading, isError } = useMarketingAdmins(period, selectedDate)
   const mutations = useMarketingAdminInviteMutations()
   const data = response?.data
   const invites = data?.invites || []
@@ -15,26 +97,6 @@ export default function AdminAdministrators() {
   const refreshLink = id => mutations.refreshLink.mutate(id, { onSuccess: result => showLink(result.data.data) })
   const showLink = invite => setShare({ id: invite.id, url: `${window.location.origin}/adminMark/register?invite=${invite.registrationToken}` })
 
-  const sessions = data?.admins?.flatMap(admin => admin.adminSessions.map(session => ({ startedAt: session.startedAt, endedAt: session.endedAt }))) || []
-  const bucketLabel = value => {
-    const date = new Date(value)
-    return period === 'day' ? `${date.getHours()}:00` : period === 'week' ? date.toLocaleDateString('es-PE', { weekday: 'short' }) : period === 'year' ? date.toLocaleDateString('es-PE', { month: 'short' }) : date.toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit' })
-  }
-  const grouped = new Map()
-  sessions.forEach(session => {
-    const start = bucketLabel(session.startedAt)
-    const starts = grouped.get(start) || { starts: 0, ends: 0 }
-    starts.starts += 1
-    grouped.set(start, starts)
-    if (session.endedAt) {
-      const end = bucketLabel(session.endedAt)
-      const ends = grouped.get(end) || { starts: 0, ends: 0 }
-      ends.ends += 1
-      grouped.set(end, ends)
-    }
-  })
-  const values = [...grouped.entries()]
-  const max = Math.max(1, ...values.flatMap(([, count]) => [count.starts, count.ends]))
 
   return <div className="admin-section">
     <section className="admin-marketing-accounts">
@@ -61,11 +123,15 @@ export default function AdminAdministrators() {
       </article>)}</div>
     </section>
 
-    <div className="admin-section-toolbar"><strong>Actividad de inicio y cierre de sesión</strong><div className="admin-admin-period">{[['day','Día'],['week','Semana'],['month','Mes'],['year','Año']].map(([key,label])=><button className={period===key?'selected':''} key={key} onClick={()=>setPeriod(key)}>{label}</button>)}</div></div>
+    <div className="admin-section-toolbar admin-admin-activity-toolbar"><div><strong>Actividad de inicio y cierre de sesión</strong><p>Consulta la actividad por cuenta y cambia el periodo o la fecha.</p></div><label className="admin-admin-date">Fecha de referencia<input type="date" value={selectedDate} onChange={event=>{setSelectedDate(event.target.value);setPeriod('day')}}/></label><div className="admin-admin-period">{[['day','Día'],['week','Semana'],['month','Mes'],['year','Año']].map(([key,label])=><button className={period===key?'selected':''} key={key} onClick={()=>setPeriod(key)}>{label}</button>)}</div></div>
     {isLoading ? <p>Cargando sesiones…</p> : <>
-      <div className="admin-admin-chart">{values.length ? values.map(([label,count])=><div key={label} title={`${label}: ${count.starts} entradas · ${count.ends} salidas`}><span className="admin-admin-bars"><i style={{height:`${Math.max(4,count.starts/max*100)}%`}}/><i className="admin-admin-exit" style={{height:`${Math.max(4,count.ends/max*100)}%`}}/></span><small>{label}</small></div>) : <p>No hay sesiones registradas en este periodo.</p>}</div>
-      <p className="admin-admin-legend"><span>Entradas</span><span>Salidas</span></p>
-      <div className="admin-admin-list">{data?.admins?.map(admin=><article key={admin.id}><h3>{admin.name}</h3><span>{admin.email}</span><strong>{admin.adminSessions.length} inicios de sesión en el periodo</strong>{admin.adminSessions.map(session=><small key={session.id}>Entró: {new Date(session.startedAt).toLocaleString('es-PE')} · Salió: {session.endedAt?new Date(session.endedAt).toLocaleString('es-PE'):'Sesión activa'}</small>)}</article>)}</div>
+      <div className="admin-admin-list">{data?.admins?.map(admin=>{
+        const startsAt = new Date(data.rangeStart).getTime()
+        const endsAt = new Date(data.rangeEnd).getTime()
+        const entries = admin.adminSessions.filter(session=>new Date(session.startedAt).getTime()>=startsAt&&new Date(session.startedAt).getTime()<endsAt).length
+        const exits = admin.adminSessions.filter(session=>session.endedAt&&new Date(session.endedAt).getTime()>=startsAt&&new Date(session.endedAt).getTime()<endsAt).length
+        return <article key={admin.id}><div className="admin-admin-account-heading"><div><h3>{admin.name || 'Administrador de marketing'}</h3><span>{admin.email}</span></div><div className="admin-admin-account-stats"><strong>{entries}<small>Inicios</small></strong><strong>{exits}<small>Cierres</small></strong></div></div><div className="admin-admin-legend"><span><i className="admin-admin-entry-key"/>Inicios de sesión</span><span><i className="admin-admin-exit-key"/>Cierres de sesión</span></div><MarketingAdminSessionChart admin={admin} period={period} selectedDate={selectedDate}/>{admin.adminSessions.length>0&&<details className="admin-admin-session-details"><summary>Ver registros exactos ({admin.adminSessions.length})</summary>{admin.adminSessions.map(session=><small key={session.id}>Entró: {new Date(session.startedAt).toLocaleString('es-PE')} · Salió: {session.endedAt?new Date(session.endedAt).toLocaleString('es-PE'):'Sesión activa'}</small>)}</details>}{entries===0&&exits===0&&<p className="admin-admin-no-sessions">No hay actividad para esta cuenta en el periodo seleccionado.</p>}</article>
+      })}{data?.admins?.length===0&&<p>No hay cuentas de administrador de marketing registradas.</p>}</div>
     </>}
   </div>
 }
