@@ -97,6 +97,33 @@ export function useMarketingAdmins(period = 'month') {
   return useAuthenticatedQuery('marketing-admins', '/api/v1/admin/marketing-admins', { period })
 }
 
+export function useMarketingAdminInviteMutations() {
+  const { getAccessTokenSilently } = useAuth0()
+  const qc = useQueryClient()
+  const invalidate = () => qc.invalidateQueries({ queryKey: ['marketing-admins'] })
+  const withToken = async fn => {
+    const token = await getAccessTokenSilently({ authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE } })
+    setAuthToken(token)
+    return fn()
+  }
+  const create = useMutation({
+    mutationFn: email => withToken(() => api.post('/api/v1/admin/marketing-admins', { email })),
+    onSuccess: () => { toast.success('Correo agregado. Falta aprobar la cuenta.'); invalidate() },
+    onError: err => toast.error(err?.response?.data?.message || 'No se pudo agregar el correo'),
+  })
+  const approve = useMutation({
+    mutationFn: id => withToken(() => api.patch(`/api/v1/admin/marketing-admins/${id}/approve`)),
+    onSuccess: () => { toast.success('Acceso de marketing aprobado'); invalidate() },
+    onError: err => toast.error(err?.response?.data?.message || 'No se pudo aprobar la cuenta'),
+  })
+  const suspend = useMutation({
+    mutationFn: id => withToken(() => api.patch(`/api/v1/admin/marketing-admins/${id}/suspend`)),
+    onSuccess: () => { toast.success('Acceso de marketing suspendido'); invalidate() },
+    onError: err => toast.error(err?.response?.data?.message || 'No se pudo suspender la cuenta'),
+  })
+  return { create, approve, suspend }
+}
+
 export function useMarketingPayoutMutation() {
   const { getAccessTokenSilently } = useAuth0()
   const qc = useQueryClient()

@@ -16,7 +16,7 @@ export default function RegisterMarketingAdmin() {
   const [error, setError] = useState('')
   const [registering, setRegistering] = useState(false)
   const [attempted, setAttempted] = useState(false)
-  const login = () => loginWithRedirect({ authorizationParams: { prompt: 'login' }, appState: { returnTo: '/adminMark/register' } })
+  const login = createAccount => loginWithRedirect({ authorizationParams: createAccount ? { screen_hint: 'signup' } : { prompt: 'login' }, appState: { returnTo: '/adminMark/register' } })
 
   useEffect(() => {
     if (!isAuthenticated || registering || attempted) return
@@ -40,7 +40,7 @@ export default function RegisterMarketingAdmin() {
   return <div className="admin-register-page"><Navbar /><main className="admin-register-card">
     <ChartNoAxesCombined size={48} /><h1>Administrador de marketing</h1>
     {isLoading || registering ? <p><Loader2 size={18} className="admin-register-spin"/> Preparando tu acceso…</p>
-      : !isAuthenticated ? <><p>Inicia sesión o crea tu cuenta para solicitar acceso. Hay un máximo de 2 cuentas.</p><button onClick={login}>Continuar</button></>
-      : error ? <><p className="admin-register-error">{error}</p><button onClick={login}>Iniciar sesión</button></> : null}
+      : !isAuthenticated ? <><p>Usa el correo que el administrador registró y aprobó. Puedes crear tu cuenta en Auth0 o iniciar sesión.</p><button onClick={()=>login(true)}>Crear cuenta con Auth0</button><button onClick={()=>login(false)}>Iniciar sesión</button></>
+      : error ? <><p className="admin-register-error">{error}</p><button onClick={()=>login(false)}>Iniciar sesión con otro correo</button></> : null}
   </main></div>
 }
