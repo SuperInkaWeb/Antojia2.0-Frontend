@@ -9,16 +9,68 @@ import './MarketingDashboard.css'
 
 const money = value => `S/ ${Number(value || 0).toLocaleString('es-PE', { minimumFractionDigits: 2 })}`
 
+function RevenueChart({ timeline }) {
+  if (!timeline.length) return <div className="marketing-chart-empty">No hay ventas en el periodo seleccionado.</div>
+
+  const width = Math.max(760, timeline.length * 76 + 82)
+  const height = 330
+  const left = 76
+  const right = 18
+  const top = 24
+  const bottom = 58
+  const plotWidth = width - left - right
+  const plotHeight = height - top - bottom
+  const maxValue = Math.max(1, ...timeline.flatMap(row => [row.sales, row.testSales || 0]))
+  const roughStep = maxValue / 4
+  const magnitude = 10 ** Math.floor(Math.log10(roughStep))
+  const normalizedStep = roughStep / magnitude
+  const step = (normalizedStep <= 1 ? 1 : normalizedStep <= 2 ? 2 : normalizedStep <= 5 ? 5 : 10) * magnitude
+  const axisMax = step * 4
+  const y = value => top + plotHeight - value / axisMax * plotHeight
+  const groupWidth = plotWidth / timeline.length
+  const barWidth = Math.min(22, groupWidth * 0.28)
+
+  return <div className="marketing-chart-scroll">
+    <svg className="marketing-revenue-chart" style={{ width: `${width}px` }} viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Gráfico de ventas por periodo: ventas pagadas y ventas de prueba no cobradas">
+      {[0, 1, 2, 3, 4].map(tick => {
+        const value = axisMax * tick / 4
+        const yPosition = y(value)
+        return <g key={tick}>
+          <line x1={left} x2={width - right} y1={yPosition} y2={yPosition} className="marketing-chart-gridline" />
+          <text x={left - 10} y={yPosition + 4} textAnchor="end" className="marketing-chart-axis-label">{money(value)}</text>
+        </g>
+      })}
+      <text x="18" y={top + plotHeight / 2} transform={`rotate(-90 18 ${top + plotHeight / 2})`} textAnchor="middle" className="marketing-chart-y-title">Monto de ventas</text>
+      {timeline.map((row, index) => {
+        const center = left + groupWidth * (index + 0.5)
+        const paidHeight = row.sales ? Math.max(2, row.sales / axisMax * plotHeight) : 0
+        const testHeight = row.testSales ? Math.max(2, row.testSales / axisMax * plotHeight) : 0
+        const paidX = center - barWidth - 2
+        const testX = center + 2
+        return <g key={row.period}>
+          <rect x={paidX} y={top + plotHeight - paidHeight} width={barWidth} height={paidHeight} rx="4" className="marketing-chart-paid">
+            <title>{`${row.period} · Ventas pagadas: ${money(row.sales)} · Comisión de plataforma: ${money(row.adminEarnings)} · Pedidos: ${row.orders}`}</title>
+          </rect>
+          <rect x={testX} y={top + plotHeight - testHeight} width={barWidth} height={testHeight} rx="4" className="marketing-chart-test">
+            <title>{`${row.period} · Ventas de prueba no cobradas: ${money(row.testSales)} · Comisión simulada: ${money(row.testAdminEarnings)} · Pedidos de prueba: ${row.testOrders}`}</title>
+          </rect>
+          <text x={center} y={height - 32} textAnchor="middle" className="marketing-chart-period">{row.period}</text>
+        </g>
+      })}
+      <text x={left + plotWidth / 2} y={height - 7} textAnchor="middle" className="marketing-chart-x-title">Periodo ({timeline.length && timeline[0].period.length === 4 ? 'año' : timeline[0].period.length === 7 ? 'mes' : 'semana'})</text>
+    </svg>
+  </div>
+}
+
 function Analytics() {
   const [period, setPeriod] = useState('month')
   const { data: response, isLoading } = useMarketingAnalytics(period)
   const data = response?.data
-  const max = Math.max(1, ...(data?.timeline || []).flatMap(row => [row.sales, row.testSales || 0]))
   return <section>
     <div className="marketing-controls">{[['week','Semanas'],['month','Meses'],['year','Años']].map(([key,label]) => <button className={period===key?'selected':''} key={key} onClick={()=>setPeriod(key)}>{label}</button>)}</div>
     {isLoading ? <p>Cargando datos…</p> : !data ? <p>No se pudieron cargar los datos.</p> : <>
       <div className="marketing-kpis"><article><span>Restaurantes registrados</span><strong>{data.totalRestaurants}</strong></article><article><span>Ventas pagadas</span><strong>{money(data.totalSales)}</strong></article><article><span>Ganancia real de la plataforma</span><strong>{money(data.adminEarnings)}</strong></article><article className="marketing-test-kpi"><span>Ventas de prueba · no cobradas</span><strong>{money(data.testSales)}</strong><small>Comisión simulada: {money(data.testAdminEarnings)}</small></article></div>
-      <article className="marketing-card"><h2>Ventas y ganancia de la plataforma</h2><div className="marketing-chart">{data.timeline.length ? data.timeline.map(row=><div className="marketing-bar" key={row.period} title={`${row.period}\nVentas pagadas: ${money(row.sales)}\nGanancia admin: ${money(row.adminEarnings)}\nVentas de prueba · no cobradas: ${money(row.testSales)}\nComisión simulada: ${money(row.testAdminEarnings)}\nPedidos pagados: ${row.orders} · pedidos de prueba: ${row.testOrders}`}><div style={{height:`${Math.max(3,row.sales/max*100)}%`}}/><div className="marketing-test-bar" style={{height:`${Math.max(0,(row.testSales||0)/max*100)}%`}}/><small>{row.period}</small></div>) : <p>No hay ventas en este periodo.</p>}</div><div className="marketing-legend"><span>Ventas pagadas · ventas de prueba (no cobradas)</span><span>Pasa el cursor para ver fecha, ventas y comisiones</span></div></article>
+      <article className="marketing-card marketing-chart-card"><div className="marketing-chart-heading"><div><h2>Ventas de restaurantes por periodo</h2><p>Compara ventas cobradas con pedidos de prueba. Las ventas están expresadas en soles.</p></div><span className="marketing-chart-unit">Soles (S/)</span></div><div className="marketing-legend"><span><i className="legend-paid"/>Ventas pagadas</span><span><i className="legend-test"/>Ventas de prueba · no cobradas</span><small>Pasa el cursor sobre una barra para ver ventas, comisión y pedidos.</small></div><RevenueChart timeline={data.timeline}/></article>
       <article className="marketing-card"><h2>Ventas por restaurante</h2><div className="marketing-list">{data.restaurants.map(r=><div key={r.id}><span>{r.name}<small>{r.orders} pedidos pagados · {r.testOrders} de prueba</small></span><strong>{money(r.sales)}</strong><small>Pruebas: {money(r.testSales)}</small></div>)}</div></article>
     </>}
   </section>
