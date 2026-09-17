@@ -5,7 +5,6 @@ import { Loader2, ChartNoAxesCombined } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useApi } from '../hooks/useApi.js'
 import { setAuthToken } from '../config/api.js'
-import Navbar from '../components/layout/Navbar.jsx'
 import './RegisterAdmin.css'
 
 export default function RegisterMarketingAdmin() {
@@ -38,7 +37,7 @@ export default function RegisterMarketingAdmin() {
     register()
   }, [api, attempted, getAccessTokenSilently, inviteToken, isAuthenticated, navigate, queryClient, registering])
 
-  return <div className="admin-register-page"><Navbar /><main className="admin-register-card">
+  return <div className="admin-register-page"><main className="admin-register-card">
     <ChartNoAxesCombined size={48} /><h1>Administrador de marketing</h1>
     {!inviteToken ? <p className="admin-register-error">Para registrarte necesitas el enlace de invitación del administrador principal.</p>
       : isLoading || registering ? <p><Loader2 size={18} className="admin-register-spin"/> Preparando tu acceso…</p>

@@ -15,6 +15,8 @@ export function useOnboarding() {
   useEffect(() => {
     if (isLoading || !isAuthenticated || synced) return
     if (['/onboarding', '/callback'].includes(location.pathname)) return
+    // El registro marketing valida el token e inicializa la cuenta en una sola petición.
+    if (location.pathname === '/adminMark/register') return
 
     const sync = async () => {
       try {
