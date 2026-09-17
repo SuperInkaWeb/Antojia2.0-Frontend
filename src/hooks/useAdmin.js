@@ -107,9 +107,14 @@ export function useMarketingAdminInviteMutations() {
     return fn()
   }
   const create = useMutation({
-    mutationFn: email => withToken(() => api.post('/api/v1/admin/marketing-admins', { email })),
-    onSuccess: () => { toast.success('Correo agregado. Falta aprobar la cuenta.'); invalidate() },
-    onError: err => toast.error(err?.response?.data?.message || 'No se pudo agregar el correo'),
+    mutationFn: () => withToken(() => api.post('/api/v1/admin/marketing-admins/link')),
+    onSuccess: () => { toast.success('Enlace de registro creado'); invalidate() },
+    onError: err => toast.error(err?.response?.data?.message || 'No se pudo crear el enlace'),
+  })
+  const refreshLink = useMutation({
+    mutationFn: id => withToken(() => api.post(`/api/v1/admin/marketing-admins/${id}/link`)),
+    onSuccess: () => { toast.success('Enlace de registro renovado'); invalidate() },
+    onError: err => toast.error(err?.response?.data?.message || 'No se pudo renovar el enlace'),
   })
   const approve = useMutation({
     mutationFn: id => withToken(() => api.patch(`/api/v1/admin/marketing-admins/${id}/approve`)),
@@ -121,7 +126,7 @@ export function useMarketingAdminInviteMutations() {
     onSuccess: () => { toast.success('Acceso de marketing suspendido'); invalidate() },
     onError: err => toast.error(err?.response?.data?.message || 'No se pudo suspender la cuenta'),
   })
-  return { create, approve, suspend }
+  return { create, refreshLink, approve, suspend }
 }
 
 export function useMarketingPayoutMutation() {

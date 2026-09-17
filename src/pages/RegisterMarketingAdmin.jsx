@@ -13,20 +13,21 @@ export default function RegisterMarketingAdmin() {
   const api = useApi()
   const queryClient = useQueryClient()
   const { isAuthenticated, isLoading, loginWithRedirect, getAccessTokenSilently } = useAuth0()
+  const inviteToken = new URLSearchParams(window.location.search).get('invite')
   const [error, setError] = useState('')
   const [registering, setRegistering] = useState(false)
   const [attempted, setAttempted] = useState(false)
-  const login = createAccount => loginWithRedirect({ authorizationParams: createAccount ? { screen_hint: 'signup' } : { prompt: 'login' }, appState: { returnTo: '/adminMark/register' } })
+  const login = createAccount => loginWithRedirect({ authorizationParams: createAccount ? { screen_hint: 'signup' } : { prompt: 'login' }, appState: { returnTo: `${window.location.pathname}${window.location.search}` } })
 
   useEffect(() => {
-    if (!isAuthenticated || registering || attempted) return
+    if (!isAuthenticated || registering || attempted || !inviteToken) return
     const register = async () => {
       setAttempted(true)
       setRegistering(true)
       try {
         const token = await getAccessTokenSilently({ authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE } })
         setAuthToken(token)
-        await api.post('/api/v1/auth/register-marketing-admin')
+        await api.post('/api/v1/auth/register-marketing-admin', { inviteToken })
         await queryClient.invalidateQueries({ queryKey: ['current-user'] })
         navigate('/adminMark', { replace: true })
       } catch (err) {
@@ -35,12 +36,13 @@ export default function RegisterMarketingAdmin() {
       }
     }
     register()
-  }, [api, attempted, getAccessTokenSilently, isAuthenticated, navigate, queryClient, registering])
+  }, [api, attempted, getAccessTokenSilently, inviteToken, isAuthenticated, navigate, queryClient, registering])
 
   return <div className="admin-register-page"><Navbar /><main className="admin-register-card">
     <ChartNoAxesCombined size={48} /><h1>Administrador de marketing</h1>
-    {isLoading || registering ? <p><Loader2 size={18} className="admin-register-spin"/> Preparando tu acceso…</p>
-      : !isAuthenticated ? <><p>Usa el correo que el administrador registró y aprobó. Puedes crear tu cuenta en Auth0 o iniciar sesión.</p><button onClick={()=>login(true)}>Crear cuenta con Auth0</button><button onClick={()=>login(false)}>Iniciar sesión</button></>
+    {!inviteToken ? <p className="admin-register-error">Para registrarte necesitas el enlace de invitación del administrador principal.</p>
+      : isLoading || registering ? <p><Loader2 size={18} className="admin-register-spin"/> Preparando tu acceso…</p>
+      : !isAuthenticated ? <><p>Crea tu cuenta de Auth0 o inicia sesión. Este enlace se vinculará al primer correo que lo use.</p><button onClick={()=>login(true)}>Crear cuenta con Auth0</button><button onClick={()=>login(false)}>Iniciar sesión</button></>
       : error ? <><p className="admin-register-error">{error}</p><button onClick={()=>login(false)}>Iniciar sesión con otro correo</button></> : null}
   </main></div>
 }

@@ -32,13 +32,13 @@ export function useOnboarding() {
 
         // Al iniciar sesión, la ruta se decide por el rol real almacenado
         // en la cuenta, no solo por la opción que se presionó en el modal.
-        if (loginRole) {
+        if (loginRole && location.pathname !== '/adminMark/register') {
           navigate(roleHome[data.data?.role] || '/', { replace: true })
           return
         }
 
         // Solo redirigir al onboarding si es usuario NUEVO
-        if (data.message === 'Usuario creado') {
+        if (data.message === 'Usuario creado' && location.pathname !== '/adminMark/register') {
           const target = sessionStorage.getItem('foodinka_registration_target')
           sessionStorage.removeItem('foodinka_registration_target')
           navigate(target || '/onboarding')
