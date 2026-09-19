@@ -10,6 +10,7 @@ import AdminPayments from '../../components/admin/AdminPayments.jsx'
 import AdminRestaurantPayouts from '../../components/admin/AdminRestaurantPayouts.jsx'
 import AdminDrivers from '../../components/admin/AdminDrivers.jsx'
 import AdminAdministrators from '../../components/admin/AdminAdministrators.jsx'
+import TechAdminInvites from '../../components/admin/TechAdminInvites.jsx'
 import './Dashboard.css'
 import { useCurrentUser } from '../../hooks/useCurrentUser.js'
 
@@ -22,6 +23,7 @@ const SECTIONS = {
   settlements: { label: 'Pagos a restaurantes', component: AdminRestaurantPayouts },
   drivers:     { label: 'Repartidores',  component: AdminDrivers },
   administrators: { label: 'Administradores', component: AdminAdministrators },
+  techAdministrators: { label: 'Administradores técnicos', component: TechAdminInvites },
 }
 
 export default function Dashboard() {

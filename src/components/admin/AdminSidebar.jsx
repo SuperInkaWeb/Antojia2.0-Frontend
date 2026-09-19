@@ -13,6 +13,7 @@ const ICONS = {
   settlements: Wallet,
   drivers:     Bike,
   administrators: ShieldCheck,
+  techAdministrators: ShieldCheck,
 }
 
 export default function AdminSidebar({ active, onChange, sections }) {

@@ -129,6 +129,14 @@ export function useMarketingAdminInviteMutations() {
   return { create, refreshLink, approve, suspend }
 }
 
+export function useTechAdmins(period = 'month', date) { return useAuthenticatedQuery('tech-admins', '/api/v1/admin/tech-admins', { period, date }) }
+export function useTechAdminInviteMutations() {
+  const { getAccessTokenSilently } = useAuth0(); const qc = useQueryClient(); const invalidate = () => qc.invalidateQueries({ queryKey: ['tech-admins'] })
+  const withToken = async fn => { const token = await getAccessTokenSilently({ authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE } }); setAuthToken(token); return fn() }
+  const mutation = (method, baseUrl, message) => useMutation({ mutationFn: value => withToken(() => { const url = value ? `${baseUrl}/${value}` : baseUrl; return method === 'post' ? api.post(url) : api.patch(url) }), onSuccess: () => { toast.success(message); invalidate() }, onError: err => toast.error(err?.response?.data?.message || 'No se pudo actualizar la invitación') })
+  return { create: mutation('post', '/api/v1/admin/tech-admins/link', 'Enlace técnico creado'), refreshLink: mutation('post', '/api/v1/admin/tech-admins', 'Enlace técnico renovado'), approve: mutation('patch', '/api/v1/admin/tech-admins', 'Acceso técnico aprobado'), suspend: mutation('patch', '/api/v1/admin/tech-admins', 'Acceso técnico suspendido') }
+}
+
 export function useMarketingPayoutMutation() {
   const { getAccessTokenSilently } = useAuth0()
   const qc = useQueryClient()
