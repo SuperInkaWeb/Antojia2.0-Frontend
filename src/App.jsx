@@ -21,6 +21,8 @@ import PaymentResult from './pages/PaymentResult.jsx'
 import RegisterAdmin from './pages/RegisterAdmin.jsx'
 import RegisterMarketingAdmin from './pages/RegisterMarketingAdmin.jsx'
 import MarketingDashboard from './pages/admin/MarketingDashboard.jsx'
+import TechDashboard from './pages/admin/TechDashboard.jsx'
+import Reports from './pages/Reports.jsx'
 import { useCartStore } from './store/cartStore.js'
 
 function AppRoutes() {
@@ -37,6 +39,8 @@ function AppRoutes() {
       <Route path="/admin/register"        element={<RegisterAdmin />} />
       <Route path="/adminMark/register"    element={<RegisterMarketingAdmin />} />
       <Route path="/adminMark"             element={<MarketingDashboard />} />
+      <Route path="/adminTec"              element={<TechDashboard />} />
+      <Route path="/reports"               element={<Reports />} />
       <Route path="/become-driver"         element={<BecomeDriver />} />
       <Route path="/driver"                element={<DriverDashboard />} />
       <Route path="/orders"                element={<MyOrders />} />

@@ -8,6 +8,8 @@ const ROLE_MAP = {
   RESTAURANT_OWNER: { label: 'Restaurante', bg: '#fff7ed', color: '#c2410c' },
   DELIVERY:         { label: 'Repartidor',  bg: '#f5f3ff', color: '#7c3aed' },
   ADMIN:            { label: 'Admin',       bg: '#fef2f2', color: '#dc2626' },
+  MARKETING_ADMIN:  { label: 'AdminMark',   bg: '#faf5ff', color: '#7c3aed' },
+  TECH_ADMIN:       { label: 'AdminTec',    bg: '#ecfeff', color: '#0e7490' },
 }
 
 const ROLE_OPTIONS = [
@@ -15,6 +17,8 @@ const ROLE_OPTIONS = [
   { value: 'RESTAURANT_OWNER', label: 'Restaurantes' },
   { value: 'DELIVERY',         label: 'Repartidores' },
   { value: 'ADMIN',            label: 'Admins' },
+  { value: 'MARKETING_ADMIN',  label: 'Admins de marketing' },
+  { value: 'TECH_ADMIN',       label: 'Admins técnicos' },
 ]
 
 export default function AdminUsers() {

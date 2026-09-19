@@ -6,6 +6,7 @@ import {
   BarChart3, BookOpen, ChevronRight, ClipboardList, FileText, CookingPot,
   House, LogOut, Menu as MenuIcon, Percent, ReceiptText, Search, Settings,
   ShoppingBag, Star, Store, TrendingUp, Users, X, Wallet, Landmark,
+  LifeBuoy,
 } from 'lucide-react'
 import { useCurrentUser } from '../hooks/useCurrentUser.js'
 import { useRestaurantCustomers, useRestaurantCustomerDetail, useRestaurantOrders, useUpdateOrderStatus, useRestaurantWallet, useRequestRestaurantWithdrawal } from '../hooks/useRestaurantOrders.js'
@@ -13,6 +14,7 @@ import { useApplyProductDiscount, useRestaurantProducts } from '../hooks/useProf
 import { SectionMenu, SectionRestaurant } from './Profile.jsx'
 import './Profile.css'
 import './RestaurantPortal.css'
+import Reports from './Reports.jsx'
 
 const SECTIONS = [
   { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
@@ -24,6 +26,7 @@ const SECTIONS = [
   { id: 'facturacion', label: 'Facturación', icon: ReceiptText },
   { id: 'deposito', label: 'Depósito', icon: Wallet },
   { id: 'configuracion', label: 'Configuración', icon: Settings },
+  { id: 'reportes', label: 'Reportes', icon: LifeBuoy },
 ]
 
 const money = value => `S/ ${Number(value || 0).toFixed(2)}`
@@ -314,7 +317,7 @@ export default function RestaurantPortal() {
     </aside>
     <main className="rp-main"><header className="rp-topbar"><div><small>Panel del restaurante</small><strong>{SECTIONS.find(item => item.id === section)?.label}</strong></div></header>
       <div className="rp-content">{ordersLoading && section !== 'menu' && section !== 'promociones' ? <div className="rp-loading">Preparando tus datos…</div> : <>
-        {section === 'dashboard' && <Overview orders={orders} restaurant={restaurant}/>} {section === 'clientes' && <Customers restaurantId={restaurant.id} onSelect={setSelectedCustomer}/>} {section === 'menu' && <SectionMenu restaurant={restaurant}/>} {section === 'preparacion' && <MenuPreparation orders={orders}/>} {section === 'ventas' && <Sales orders={orders}/>} {section === 'promociones' && <Promotions restaurantId={restaurant.id} orders={orders}/>} {section === 'facturacion' && <Billing orders={orders} restaurant={restaurant}/>} {section === 'deposito' && <Deposit restaurantId={restaurant.id}/>} {section === 'configuracion' && <SectionRestaurant restaurant={restaurant}/>} </>}
+        {section === 'dashboard' && <Overview orders={orders} restaurant={restaurant}/>} {section === 'clientes' && <Customers restaurantId={restaurant.id} onSelect={setSelectedCustomer}/>} {section === 'menu' && <SectionMenu restaurant={restaurant}/>} {section === 'preparacion' && <MenuPreparation orders={orders}/>} {section === 'ventas' && <Sales orders={orders}/>} {section === 'promociones' && <Promotions restaurantId={restaurant.id} orders={orders}/>} {section === 'facturacion' && <Billing orders={orders} restaurant={restaurant}/>} {section === 'deposito' && <Deposit restaurantId={restaurant.id}/>} {section === 'configuracion' && <SectionRestaurant restaurant={restaurant}/>} {section === 'reportes' && <Reports/>} </>}
         {selectedCustomer && <CustomerDetail detail={customerDetail} isLoading={customerDetailLoading} onClose={() => setSelectedCustomer(null)}/>}
       </div>
     </main>

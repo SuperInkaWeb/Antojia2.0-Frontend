@@ -24,9 +24,10 @@ export default function Navbar({ cartCount, searchValue = '', onSearchChange, di
   const role              = dbUser?.role || null
   const isAdmin           = role === 'ADMIN'
   const isMarketingAdmin  = role === 'MARKETING_ADMIN'
+  const isTechAdmin       = role === 'TECH_ADMIN'
   const isDriver          = role === 'DELIVERY'
   const isRestaurantOwner = role === 'RESTAURANT_OWNER'
-  const isConsumer        = isAuthenticated && !isAdmin && !isMarketingAdmin && !isDriver && !isRestaurantOwner
+  const isConsumer        = isAuthenticated && !isAdmin && !isMarketingAdmin && !isTechAdmin && !isDriver && !isRestaurantOwner
   const logoDestination   = isDriver ? '/driver' : '/'
 
   const handleLogout = () => {
@@ -161,22 +162,23 @@ export default function Navbar({ cartCount, searchValue = '', onSearchChange, di
                   <Link to="/cart" onClick={() => setMenuOpen(false)}>Carrito {count > 0 && `(${count})`}</Link>
                   <Link to="/profile" onClick={() => setMenuOpen(false)}>Mi perfil</Link>
                   <Link to="/orders" onClick={() => setMenuOpen(false)}>Mis pedidos y seguimiento</Link>
+                  <Link to="/reports" onClick={() => setMenuOpen(false)}>Reportes</Link>
                 </>}
                 {isRestaurantOwner && (
-                  <Link to="/restaurant-dashboard" onClick={() => setMenuOpen(false)}>
-                    Dashboard del restaurante
-                  </Link>
+                  <><Link to="/restaurant-dashboard" onClick={() => setMenuOpen(false)}>Dashboard del restaurante</Link><Link to="/reports" onClick={() => setMenuOpen(false)}>Reportes</Link></>
                 )}
                 {isDriver && (
                   <>
                     <Link to="/profile" onClick={() => setMenuOpen(false)}>Mi perfil</Link>
                     <Link to="/driver" onClick={() => setMenuOpen(false)}>Panel de delivery</Link>
+                    <Link to="/reports" onClick={() => setMenuOpen(false)}>Reportes</Link>
                   </>
                 )}
                 {isAdmin && (
                   <Link to="/admin" onClick={() => setMenuOpen(false)}>Dashboard del administrador</Link>
                 )}
                 {isMarketingAdmin && <Link to="/adminMark" onClick={() => setMenuOpen(false)}>Dashboard de marketing</Link>}
+                {isTechAdmin && <Link to="/adminTec" onClick={() => setMenuOpen(false)}>Dashboard de reportes</Link>}
                 <button className="navbar-drawer-logout" onClick={handleLogout}><LogOut size={16}/> Cerrar sesión</button>
               </>
           }

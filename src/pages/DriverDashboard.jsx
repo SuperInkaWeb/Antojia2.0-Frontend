@@ -9,6 +9,7 @@ import { api, setAuthToken } from '../config/api.js'
 import Navbar from '../components/layout/Navbar.jsx'
 import DeliveryProofCapture from '../components/delivery/DeliveryProofCapture.jsx'
 import './DriverDashboard.css'
+import Reports from './Reports.jsx'
 
 const DISTRICTS = ['Miraflores','San Isidro','Barranco','Surco','La Molina','San Borja','Cercado de Lima','Lince','Jesús María','Magdalena','San Miguel','Pueblo Libre','Breña','Rímac','Los Olivos','San Martín de Porres','Ate','La Victoria','Chorrillos']
 
@@ -81,7 +82,7 @@ export default function DriverDashboard() {
     : (current?.deliveryLatitude != null && current?.deliveryLongitude != null
       ? `${current.deliveryLatitude},${current.deliveryLongitude}`
       : encodeURIComponent(`${current?.deliveryAddress || ''}, ${current?.deliveryDistrict || ''}, Perú`))
-  return <div className="ddash"><Navbar/><div className="ddash-inner"><h1 className="ddash-title">Panel de repartidor</h1>
+  return <div className="ddash"><Navbar/><div className="ddash-inner"><div className="ddash-title-row"><h1 className="ddash-title">Panel de repartidor</h1><button className="dorder-accept" onClick={() => window.location.href='/reports'}>Reportes</button></div>
     {driver && <section className="ddash-availability">
       <div>
         <strong>{driver.isVerified ? (driver.status === 'AVAILABLE' ? 'Estás disponible' : 'Estás desconectado') : 'Perfil pendiente de verificación'}</strong>
