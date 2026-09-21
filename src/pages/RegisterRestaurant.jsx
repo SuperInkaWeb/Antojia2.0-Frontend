@@ -75,7 +75,7 @@ export default function RegisterRestaurant() {
 
   const [form, setForm] = useState({
     name: '', ruc: '', category: '', description: '',
-    address: '', addressReference: '', district: '', phone: '', latitude: null, longitude: null, logoUrl: '',
+    address: '', addressReference: '', district: '', phone: '', latitude: null, longitude: null, logoUrl: '', bannerUrl: '',
     accountNumber: '',
     isDeliveryEnabled: true,
     isReservationEnabled: true,
@@ -161,6 +161,7 @@ export default function RegisterRestaurant() {
         latitude:    form.latitude,
         longitude:   form.longitude,
         logoUrl:     form.logoUrl || undefined,
+        bannerUrl:   form.bannerUrl || undefined,
         accountNumber: form.accountNumber,
         isDeliveryEnabled: form.isDeliveryEnabled,
         isReservationEnabled: form.isReservationEnabled,
@@ -356,6 +357,12 @@ export default function RegisterRestaurant() {
             <div className="rr-field">
               <label className="rr-label">Logo o foto del restaurante <span className="rr-optional">(opcional)</span></label>
               <ImageUploader value={form.logoUrl} onUploaded={url => setForm(current => ({ ...current, logoUrl: url }))} scope="restaurants/logos" label="Subir logo o foto" />
+            </div>
+
+            <div className="rr-field">
+              <label className="rr-label">Fondo del restaurante <span className="rr-optional">(opcional)</span></label>
+              <ImageUploader value={form.bannerUrl} onUploaded={url => setForm(current => ({ ...current, bannerUrl: url }))} scope="restaurants/banners" label="Subir fondo del restaurante" />
+              <small className="rr-upload-help">Si no subes uno, se usará el fondo predeterminado.</small>
             </div>
           </div>
 

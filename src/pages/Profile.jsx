@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import Navbar from '../components/layout/Navbar.jsx'
 import LogoUploader from '../components/ui/LogoUploader.jsx'
+import ImageUploader from '../components/ui/ImageUploader.jsx'
 import RestaurantLocationPicker from '../components/restaurant/RestaurantLocationPicker.jsx'
 import { useCurrentUser } from '../hooks/useCurrentUser.js'
 import {
@@ -297,6 +298,17 @@ export function SectionRestaurant({ restaurant }) {
             <p className="pf-logo-hint-sub">PNG o JPG · máx 5 MB · recomendado 400×400 px</p>
           </div>
         </div>
+      </div>
+
+      <div className="pf-field">
+        <label className="pf-field-label">Fondo del restaurante</label>
+        <ImageUploader
+          value={restaurant.bannerUrl}
+          onUploaded={bannerUrl => update({ bannerUrl })}
+          scope="restaurants/banners"
+          label="Subir fondo del restaurante"
+        />
+        <p className="pf-field-help">Si no colocas uno, se mostrará el fondo predeterminado.</p>
       </div>
 
       <EditableField label="Nombre del restaurante" value={restaurant.name} saving={isPending}

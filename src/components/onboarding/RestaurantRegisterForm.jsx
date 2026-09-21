@@ -2,6 +2,7 @@ import { useState, useRef } from 'react'
 import { Loader2, ArrowLeft, CheckCircle, XCircle } from 'lucide-react'
 import { useApi } from '../../hooks/useApi.js'
 import RestaurantLocationPicker from '../restaurant/RestaurantLocationPicker.jsx'
+import ImageUploader from '../ui/ImageUploader.jsx'
 import './RestaurantRegisterForm.css'
 
 const CATEGORIES = [
@@ -33,7 +34,7 @@ export default function RestaurantRegisterForm({ onSubmit, onBack, loading }) {
 
   const [form, setForm] = useState({
     name: '', ruc: '', category: '', description: '',
-    address: '', addressReference: '', district: '', phone: '', latitude: null, longitude: null,
+    address: '', addressReference: '', district: '', phone: '', latitude: null, longitude: null, logoUrl: '', bannerUrl: '',
     accountNumber: '',
     isDeliveryEnabled: true,
     isReservationEnabled: true,
@@ -266,6 +267,17 @@ export default function RestaurantRegisterForm({ onSubmit, onBack, loading }) {
           placeholder="Entre 8 y 20 dígitos" value={form.accountNumber}
           onChange={e => setForm(f => ({ ...f, accountNumber: e.target.value.replace(/\D/g, '').slice(0, 20) }))}/>
         <small>Cuenta donde recibirás las transferencias de Foodinka.</small>
+      </div>
+
+      <div className="rrform-field">
+        <label className="rrform-label">Logo del restaurante <span className="rrform-optional">(opcional)</span></label>
+        <ImageUploader value={form.logoUrl} onUploaded={url => setForm(current => ({ ...current, logoUrl: url }))} scope="restaurants/logos" label="Subir logo del restaurante" />
+      </div>
+
+      <div className="rrform-field">
+        <label className="rrform-label">Fondo del restaurante <span className="rrform-optional">(opcional)</span></label>
+        <ImageUploader value={form.bannerUrl} onUploaded={url => setForm(current => ({ ...current, bannerUrl: url }))} scope="restaurants/banners" label="Subir fondo del restaurante" />
+        <small>Si no subes uno, se usará el fondo predeterminado.</small>
       </div>
 
       <div className="rrform-field">
