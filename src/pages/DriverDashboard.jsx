@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useAuth0 } from '@auth0/auth0-react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { MapPin, Package, ChevronRight, Loader2, Navigation, CheckCircle } from 'lucide-react'
+import { MapPin, Package, ChevronRight, Loader2, Navigation, CheckCircle, RefreshCw } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useApi } from '../hooks/useApi.js'
 import { useCurrentUser } from '../hooks/useCurrentUser.js'
@@ -26,13 +26,18 @@ export default function DriverDashboard() {
   const availableOrdersKey = ['driver-orders', driverKey]
   const auth = async () => setAuthToken(await getAccessTokenSilently({ authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE } }))
   const driver = profile?.driverProfile
-  const { data: active = [] } = useQuery({ queryKey: activeOrdersKey, queryFn: async () => { await auth(); return (await api.get('/api/v1/drivers/orders/active')).data.data }, enabled: isAuthenticated && Boolean(driverKey), refetchInterval: 20000 })
+  const { data: active = [], refetch: refetchActive, isFetching: activeFetching } = useQuery({ queryKey: activeOrdersKey, queryFn: async () => { await auth(); return (await api.get('/api/v1/drivers/orders/active')).data.data }, enabled: isAuthenticated && Boolean(driverKey), refetchInterval: 20000 })
   // La bolsa de pedidos es global: todos los repartidores ven todos los READY
   // sin repartidor, sin limitarla al distrito de su perfil.
-  const { data: orders = [], isLoading, refetch } = useQuery({ queryKey: availableOrdersKey, queryFn: async () => { await auth(); return (await api.get('/api/v1/drivers/orders/available')).data.data }, enabled: isAuthenticated && Boolean(driverKey) && !active.length, refetchInterval: active.length ? false : 30000 })
+  const { data: orders = [], isLoading, refetch, isFetching: ordersFetching } = useQuery({ queryKey: availableOrdersKey, queryFn: async () => { await auth(); return (await api.get('/api/v1/drivers/orders/available')).data.data }, enabled: isAuthenticated && Boolean(driverKey) && !active.length, refetchInterval: active.length ? false : 30000 })
   const filteredOrders = district === 'ALL'
     ? orders
     : orders.filter(order => order.restaurant?.district?.toLocaleLowerCase() === district.toLocaleLowerCase())
+  const refreshingOrders = activeFetching || ordersFetching
+  const refreshOrders = async () => {
+    await refetchActive()
+    if (!active.length) await refetch()
+  }
 
   const accept = async order => {
     const destination = order.restaurant?.latitude != null && order.restaurant?.longitude != null ? `${order.restaurant.latitude},${order.restaurant.longitude}` : encodeURIComponent(`${order.restaurant?.address || ''}, ${order.restaurant?.district || ''}, Perú`)
@@ -82,7 +87,7 @@ export default function DriverDashboard() {
     : (current?.deliveryLatitude != null && current?.deliveryLongitude != null
       ? `${current.deliveryLatitude},${current.deliveryLongitude}`
       : encodeURIComponent(`${current?.deliveryAddress || ''}, ${current?.deliveryDistrict || ''}, Perú`))
-  return <div className="ddash"><Navbar/><div className="ddash-inner"><div className="ddash-title-row"><h1 className="ddash-title">Panel de repartidor</h1><button className="ddash-report-link" onClick={() => window.location.href='/reports'}>Reportes</button></div>
+  return <div className="ddash"><Navbar/><div className="ddash-inner"><div className="ddash-title-row"><h1 className="ddash-title">Panel de repartidor</h1><div className="ddash-title-actions"><button className="ddash-refresh" onClick={refreshOrders} disabled={refreshingOrders}><RefreshCw size={15} className={refreshingOrders ? 'ddash-spinner' : ''}/>{refreshingOrders ? 'Actualizando…' : 'Actualizar pedidos'}</button><button className="ddash-report-link" onClick={() => window.location.href='/reports'}>Reportes</button></div></div>
     {driver && <section className="ddash-availability">
       <div>
         <strong>{driver.isVerified ? (driver.status === 'AVAILABLE' ? 'Estás disponible' : 'Estás desconectado') : 'Perfil pendiente de verificación'}</strong>
