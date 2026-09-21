@@ -13,9 +13,15 @@ const CATEGORIES = [
 ]
 
 const DISTRICTS = [
-  'Miraflores', 'San Isidro', 'Barranco', 'Surco',
-  'La Molina', 'San Borja', 'Cercado de Lima',
-  'Lince', 'Jesús María', 'Magdalena',
+  'Ancón','Ate','Barranco','Breña','Carabayllo','Chaclacayo','Chorrillos',
+  'Cieneguilla','Comas','Cercado de Lima','El Agustino','Independencia',
+  'Jesús María','La Molina','La Victoria','Lince','Los Olivos',
+  'Lurigancho-Chosica','Lurín','Magdalena del Mar','Miraflores','Pachacámac',
+  'Pucusana','Pueblo Libre','Puente Piedra','Punta Hermosa','Punta Negra',
+  'Rímac','San Bartolo','San Borja','San Isidro','San Juan de Lurigancho',
+  'San Juan de Miraflores','San Luis','San Martín de Porres','San Miguel',
+  'Santa Anita','Santa María del Mar','Santa Rosa','Surco','Surquillo',
+  'Villa El Salvador','Villa María del Triunfo',
 ]
 
 export default function CategoryFilter({ filters, onChange, categoriesOnly = false, filtersOnly = false }) {
