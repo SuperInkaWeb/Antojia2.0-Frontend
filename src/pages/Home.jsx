@@ -48,11 +48,16 @@ export default function Home() {
   }
 
   const chooseQuickCategory = category => handleFiltersChange({ ...filters, category })
-  const applyPromo = action => handleFiltersChange({
-    ...filters,
-    delivery: action === 'delivery' ? 'true' : '',
-    reservation: action === 'reservation' ? 'true' : '',
-  })
+  const applyPromo = action => {
+    handleFiltersChange({
+      ...filters,
+      delivery: action === 'delivery' ? 'true' : '',
+      reservation: action === 'reservation' ? 'true' : '',
+    })
+    requestAnimationFrame(() => {
+      document.getElementById('restaurantes')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    })
+  }
   const scrollPopular = direction => popularRef.current?.scrollBy({ left: direction * 360, behavior: 'smooth' })
 
   return (

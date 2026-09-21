@@ -101,6 +101,21 @@
 .pf-btn-category:disabled { opacity: .55; cursor: default; }
 .pf-field-help { margin: 7px 0 0; color: #9ca3af; font-size: .72rem; line-height: 1.4; }
 
+/* Configuración de servicios */
+.pf-service-settings { display: grid; gap: 10px; }
+.pf-service-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.pf-service-option {
+  display: flex; align-items: flex-start; gap: 8px; padding: 10px;
+  border: 1.5px solid #e5e7eb; border-radius: 10px; background: #fff;
+  cursor: pointer; transition: all .18s ease;
+}
+.pf-service-option:hover { border-color: #f1b59e; background: #fffaf7; }
+.pf-service-option--active { border-color: #e85d24; background: #fff7f3; }
+.pf-service-option input { margin-top: 3px; accent-color: #e85d24; }
+.pf-service-option span { display: grid; gap: 2px; }
+.pf-service-option strong { font-size: .78rem; color: #374151; }
+.pf-service-option small { font-size: .68rem; color: #9ca3af; }
+
 /* ── Botones icono ─────────────────────────────────────── */
 .pf-icon-btn {
   width: 32px; height: 32px; border-radius: 8px; border: none;
@@ -284,5 +299,6 @@
 @media (max-width: 600px) {
   .pf-inner { padding: 16px 12px 64px; }
   .pf-modal-body { padding: 14px 16px; }
+  .pf-service-options { grid-template-columns: 1fr; }
 }
 

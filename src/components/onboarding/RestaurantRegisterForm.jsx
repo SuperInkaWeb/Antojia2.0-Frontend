@@ -35,6 +35,8 @@ export default function RestaurantRegisterForm({ onSubmit, onBack, loading }) {
     name: '', ruc: '', category: '', description: '',
     address: '', addressReference: '', district: '', phone: '', latitude: null, longitude: null,
     accountNumber: '',
+    isDeliveryEnabled: true,
+    isReservationEnabled: true,
   })
 
   const [rucStatus,  setRucStatus]  = useState(null) // null | 'checking' | 'valid' | 'invalid'
@@ -109,11 +111,11 @@ export default function RestaurantRegisterForm({ onSubmit, onBack, loading }) {
 
   const handleSubmit = async () => {
     if (rucStatus !== 'valid') return
-    if (!form.name || !form.category || !form.address || !form.district || !/^\d{8,20}$/.test(form.accountNumber.replace(/\s/g, '')) || form.latitude == null || form.longitude == null) return
+    if (!form.name || !form.category || !form.address || !form.district || !/^\d{8,20}$/.test(form.accountNumber.replace(/\s/g, '')) || (!form.isDeliveryEnabled && !form.isReservationEnabled) || form.latitude == null || form.longitude == null) return
     await onSubmit(form)
   }
 
-  const isValid = rucStatus === 'valid' && form.name && form.category && form.address && form.district && /^\d{8,20}$/.test(form.accountNumber.replace(/\s/g, '')) && form.latitude != null && form.longitude != null
+  const isValid = rucStatus === 'valid' && form.name && form.category && form.address && form.district && /^\d{8,20}$/.test(form.accountNumber.replace(/\s/g, '')) && (form.isDeliveryEnabled || form.isReservationEnabled) && form.latitude != null && form.longitude != null
 
   return (
     <div className="rrform">
@@ -264,6 +266,21 @@ export default function RestaurantRegisterForm({ onSubmit, onBack, loading }) {
           placeholder="Entre 8 y 20 dígitos" value={form.accountNumber}
           onChange={e => setForm(f => ({ ...f, accountNumber: e.target.value.replace(/\D/g, '').slice(0, 20) }))}/>
         <small>Cuenta donde recibirás las transferencias de Foodinka.</small>
+      </div>
+
+      <div className="rrform-field">
+        <label className="rrform-label">Servicios que ofrecerás *</label>
+        <small>Selecciona al menos uno. Podrás cambiarlo después desde configuración.</small>
+        <div className="rr-service-options">
+          <label className={`rr-service-option ${form.isDeliveryEnabled ? 'rr-service-option--active' : ''}`}>
+            <input type="checkbox" checked={form.isDeliveryEnabled} onChange={e => setForm(f => ({ ...f, isDeliveryEnabled: e.target.checked }))}/>
+            <span><strong>🛵 Delivery</strong><small>Recibe pedidos para entregar.</small></span>
+          </label>
+          <label className={`rr-service-option ${form.isReservationEnabled ? 'rr-service-option--active' : ''}`}>
+            <input type="checkbox" checked={form.isReservationEnabled} onChange={e => setForm(f => ({ ...f, isReservationEnabled: e.target.checked }))}/>
+            <span><strong>📅 Reservas</strong><small>Permite reservas de mesas.</small></span>
+          </label>
+        </div>
       </div>
 
       {/* Info de verificación */}

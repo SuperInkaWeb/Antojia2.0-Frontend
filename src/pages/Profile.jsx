@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth0 } from '@auth0/auth0-react'
+import toast from 'react-hot-toast'
 import {
   User, Store, Bike, Pencil, Check, X,
   Plus, Trash2, CircleCheck, CircleX, ChefHat,
@@ -225,6 +226,27 @@ function SectionUser({ user }) {
 // ─── Sección restaurante (con logo uploader) ───────────────────────
 export function SectionRestaurant({ restaurant }) {
   const { mutateAsync: update, isPending } = useUpdateRestaurant(restaurant.id)
+  const [deliveryEnabled, setDeliveryEnabled] = useState(restaurant.isDeliveryEnabled !== false)
+  const [reservationEnabled, setReservationEnabled] = useState(restaurant.isReservationEnabled !== false)
+
+  useEffect(() => {
+    setDeliveryEnabled(restaurant.isDeliveryEnabled !== false)
+    setReservationEnabled(restaurant.isReservationEnabled !== false)
+  }, [restaurant.isDeliveryEnabled, restaurant.isReservationEnabled])
+
+  const updateService = async (service, enabled) => {
+    const nextDelivery = service === 'delivery' ? enabled : deliveryEnabled
+    const nextReservation = service === 'reservation' ? enabled : reservationEnabled
+    if (!nextDelivery && !nextReservation) {
+      toast.error('Mantén activo delivery o reservas')
+      return
+    }
+    await update(service === 'delivery'
+      ? { isDeliveryEnabled: enabled }
+      : { isReservationEnabled: enabled })
+    if (service === 'delivery') setDeliveryEnabled(enabled)
+    else setReservationEnabled(enabled)
+  }
 
   const handleLogoUploaded = async (logoUrl) => {
     await update({ logoUrl })
@@ -238,6 +260,25 @@ export function SectionRestaurant({ restaurant }) {
         {restaurant.status === 'ACTIVE'    ? '✅ Activo — visible para los clientes' :
          restaurant.status === 'PENDING_VERIFICATION' ? '⏳ Pendiente de verificación por Foodinka' :
          restaurant.status === 'SUSPENDED' ? '🚫 Suspendido' : restaurant.status}
+      </div>
+
+      <div className="pf-service-settings">
+        <div>
+          <label className="pf-field-label">Servicios activos</label>
+          <p className="pf-field-help">Elige qué modalidades puede usar tu restaurante.</p>
+        </div>
+        <div className="pf-service-options">
+          <label className={`pf-service-option ${deliveryEnabled ? 'pf-service-option--active' : ''}`}>
+            <input type="checkbox" checked={deliveryEnabled} disabled={isPending}
+              onChange={e => updateService('delivery', e.target.checked)} />
+            <span><strong>🛵 Delivery</strong><small>Recibe pedidos de entrega.</small></span>
+          </label>
+          <label className={`pf-service-option ${reservationEnabled ? 'pf-service-option--active' : ''}`}>
+            <input type="checkbox" checked={reservationEnabled} disabled={isPending}
+              onChange={e => updateService('reservation', e.target.checked)} />
+            <span><strong>📅 Reservas</strong><small>Acepta reservas de mesas.</small></span>
+          </label>
+        </div>
       </div>
 
       {/* Logo */}
