@@ -208,6 +208,8 @@
 }
 .ddash-title-row{display:flex;align-items:center;justify-content:space-between;gap:16px}
 .ddash-title-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ddash-settings-link{display:inline-flex;align-items:center;justify-content:center;gap:7px;width:max-content;padding:9px 13px;border:1px solid #dbe3ee;border-radius:10px;background:#f8fafc;color:#475569;font-size:.8rem;font-weight:800;cursor:pointer;transition:all .18s ease}
+.ddash-settings-link:hover{border-color:#94a3b8;background:#eef2f7;transform:translateY(-1px)}
 .ddash-report-link{display:inline-flex;align-items:center;justify-content:center;width:max-content;padding:9px 14px;border:1px solid #f1c7b5;border-radius:10px;background:#fff8f5;color:#d9501d;font-size:.8rem;font-weight:800;cursor:pointer;transition:all .18s ease}
 .ddash-report-link:hover{background:#fff0e9;border-color:#e85d24;transform:translateY(-1px);box-shadow:0 4px 12px #e85d241c}
 .ddash-availability {
@@ -230,6 +232,7 @@
   .ddash-availability { align-items: stretch; flex-direction: column; }
 }
 .ddash-active{display:grid;gap:14px;padding:22px;border:1px solid #f0d9cd;border-radius:18px;background:#fff;box-shadow:0 12px 35px rgba(30,20,15,.08)}
+.ddash-contact-link{display:flex;align-items:center;gap:7px;color:#d9501d;font-weight:700;text-decoration:none}.ddash-contact-link:hover{text-decoration:underline}
 .ddash-active-head,.ddash-active-actions{display:flex;align-items:center;justify-content:space-between;gap:14px}.ddash-active-head h2{margin:4px 0 0}.ddash-live{color:#16a34a;font-size:.72rem;font-weight:800;letter-spacing:.08em}.ddash-active p{display:flex;align-items:flex-start;gap:7px;margin:0;color:#4b5563}.ddash-route{display:inline-flex;align-items:center;gap:6px;padding:9px 14px;border:1px solid #e85d24;border-radius:9px;color:#d9501b;font-weight:700;text-decoration:none}.ddash-tracking{color:#7b8491;overflow-wrap:anywhere}@media(max-width:640px){.ddash-active-actions{align-items:stretch;flex-direction:column}.ddash-active-actions>*{justify-content:center;width:100%;box-sizing:border-box}}
 /* Validación segura de entrega */
 .ddash-proof{margin-top:18px;padding:16px;border:1px solid #fed7aa;border-radius:14px;background:#fffaf5}.ddash-proof h3{margin:0 0 4px;font-size:1rem}.ddash-proof p{margin:0 0 12px;color:#667085;font-size:.84rem}.ddash-code-input{width:100%;box-sizing:border-box;border:1px solid #d0d5dd;border-radius:10px;padding:12px;font-size:1.1rem;letter-spacing:.2em;text-align:center;margin-bottom:10px}.ddash-camera{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:10px;background:#344054;color:#fff;padding:11px;cursor:pointer;font-weight:700}.ddash-camera:disabled{opacity:.6}.ddash-proof-preview{display:block;width:100%;max-height:220px;object-fit:cover;border-radius:10px;margin-top:10px}.ddash-proof-error{display:block;color:#b42318;margin-top:7px}

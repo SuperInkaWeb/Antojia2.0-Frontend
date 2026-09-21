@@ -207,13 +207,13 @@ export function useUpdateDriverVehicle() {
   const { getAccessTokenSilently } = useAuth0()
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async ({ vehicleType, licensePlate, accountNumber }) => {
+    mutationFn: async ({ vehicleType, licensePlate, accountNumber, dniPhotoUrl, licensePhotoUrl, vehiclePhotoUrl }) => {
       await withAuth(getAccessTokenSilently)
-      const res = await api.patch('/api/v1/drivers/vehicle', { vehicleType, licensePlate, accountNumber })
+      const res = await api.patch('/api/v1/drivers/vehicle', { vehicleType, licensePlate, accountNumber, dniPhotoUrl, licensePhotoUrl, vehiclePhotoUrl })
       return res.data
     },
     onSuccess: () => {
-      toast.success('Vehículo actualizado ✅')
+      toast.success('Datos del repartidor actualizados ✅')
       qc.invalidateQueries({ queryKey: ['current-user'] })
     },
     onError: (err) => toast.error(err?.response?.data?.message || 'Error al actualizar vehículo'),

@@ -437,6 +437,18 @@ function SectionDriver({ driver }) {
           <div className="pf-field-val pf-field-val--readonly"><span>{driver.licenseNumber}</span></div>
         </div>
       )}
+      <div className="pf-field">
+        <label className="pf-field-label">Foto del DNI</label>
+        <ImageUploader value={driver?.dniPhotoUrl} onUploaded={dniPhotoUrl => updateVehicle({ dniPhotoUrl })} scope="drivers/dni" label="Actualizar foto del DNI" />
+      </div>
+      <div className="pf-field">
+        <label className="pf-field-label">Foto del carné de conducir</label>
+        <ImageUploader value={driver?.licensePhotoUrl} onUploaded={licensePhotoUrl => updateVehicle({ licensePhotoUrl })} scope="drivers/licenses" label="Actualizar foto del carné" />
+      </div>
+      <div className="pf-field">
+        <label className="pf-field-label">Foto de placa / vehículo</label>
+        <ImageUploader value={driver?.vehiclePhotoUrl} onUploaded={vehiclePhotoUrl => updateVehicle({ vehiclePhotoUrl })} scope="drivers/vehicles" label="Actualizar foto del vehículo" />
+      </div>
       <BankAccountField value={driver?.bankAccountNumberMasked} saving={isPending}
         onSave={accountNumber => updateVehicle({ accountNumber })}/>
       <div className="pf-field">

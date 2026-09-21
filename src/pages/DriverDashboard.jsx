@@ -1,7 +1,8 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth0 } from '@auth0/auth0-react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { MapPin, Package, ChevronRight, Loader2, Navigation, CheckCircle, RefreshCw } from 'lucide-react'
+import { MapPin, Package, ChevronRight, Loader2, Navigation, CheckCircle, RefreshCw, Settings, Phone } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useApi } from '../hooks/useApi.js'
 import { useCurrentUser } from '../hooks/useCurrentUser.js'
@@ -14,6 +15,7 @@ import Reports from './Reports.jsx'
 const DISTRICTS = ['Ancón','Ate','Barranco','Breña','Carabayllo','Chaclacayo','Chorrillos','Cieneguilla','Comas','Cercado de Lima','El Agustino','Independencia','Jesús María','La Molina','La Victoria','Lince','Los Olivos','Lurigancho-Chosica','Lurín','Magdalena del Mar','Miraflores','Pachacámac','Pucusana','Pueblo Libre','Puente Piedra','Punta Hermosa','Punta Negra','Rímac','San Bartolo','San Borja','San Isidro','San Juan de Lurigancho','San Juan de Miraflores','San Luis','San Martín de Porres','San Miguel','Santa Anita','Santa María del Mar','Santa Rosa','Surco','Surquillo','Villa El Salvador','Villa María del Triunfo']
 
 export default function DriverDashboard() {
+  const navigate = useNavigate()
   const { getAccessTokenSilently, isAuthenticated, user } = useAuth0(); useApi()
   const qc = useQueryClient()
   const { data: profile } = useCurrentUser()
@@ -87,7 +89,7 @@ export default function DriverDashboard() {
     : (current?.deliveryLatitude != null && current?.deliveryLongitude != null
       ? `${current.deliveryLatitude},${current.deliveryLongitude}`
       : encodeURIComponent(`${current?.deliveryAddress || ''}, ${current?.deliveryDistrict || ''}, Perú`))
-  return <div className="ddash"><Navbar/><div className="ddash-inner"><div className="ddash-title-row"><h1 className="ddash-title">Panel de repartidor</h1><div className="ddash-title-actions"><button className="ddash-refresh" onClick={refreshOrders} disabled={refreshingOrders}><RefreshCw size={15} className={refreshingOrders ? 'ddash-spinner' : ''}/>{refreshingOrders ? 'Actualizando…' : 'Actualizar pedidos'}</button><button className="ddash-report-link" onClick={() => window.location.href='/reports'}>Reportes</button></div></div>
+  return <div className="ddash"><Navbar/><div className="ddash-inner"><div className="ddash-title-row"><h1 className="ddash-title">Panel de repartidor</h1><div className="ddash-title-actions"><button className="ddash-settings-link" onClick={() => navigate('/profile')}><Settings size={15}/> Configuración</button><button className="ddash-refresh" onClick={refreshOrders} disabled={refreshingOrders}><RefreshCw size={15} className={refreshingOrders ? 'ddash-spinner' : ''}/>{refreshingOrders ? 'Actualizando…' : 'Actualizar pedidos'}</button><button className="ddash-report-link" onClick={() => window.location.href='/reports'}>Reportes</button></div></div>
     {driver && <section className="ddash-availability">
       <div>
         <strong>{driver.isVerified ? (driver.status === 'AVAILABLE' ? 'Estás disponible' : 'Estás desconectado') : 'Perfil pendiente de verificación'}</strong>
@@ -105,6 +107,7 @@ export default function DriverDashboard() {
       <div className="ddash-active-head"><div><span className="ddash-live">● ENTREGA ACTIVA</span><h2>#{current.orderNumber?.slice(-8)}</h2></div><strong>S/ {current.total?.toFixed(2)}</strong></div>
       <p><Package size={15}/> Recoger en <strong>{current.restaurant?.name}</strong>: {current.restaurant?.address}</p>
       {current.restaurant?.addressReference && <p><MapPin size={15}/> Referencia del restaurante: <strong>{current.restaurant.addressReference}</strong></p>}
+      {current.restaurant?.phone && <a className="ddash-contact-link" href={`tel:${current.restaurant.phone}`}><Phone size={15}/> Llamar al restaurante: <strong>{current.restaurant.phone}</strong></a>}
       <p><MapPin size={15}/> Entregar a <strong>{current.user?.name}</strong>: {current.deliveryAddress}</p>
       {current.status === 'ON_THE_WAY' && <div className="ddash-proof"><h3>Validar entrega</h3><p>Pide al cliente su código de 6 dígitos y toma la foto al entregar.</p><input className="ddash-code-input" inputMode="numeric" maxLength={6} placeholder="Código de entrega" value={deliveryCode} onChange={event => setDeliveryCode(event.target.value.replace(/\D/g, '').slice(0, 6))}/><DeliveryProofCapture orderId={current.id} value={proofUrl} onUploaded={setProofUrl}/></div>}
       <div className="ddash-active-actions"><a className="ddash-route" target="_blank" rel="noreferrer" href={`https://www.google.com/maps/dir/?api=1&destination=${currentDestination}`}><Navigation size={16}/> {current.status === 'READY' ? 'Abrir ruta al restaurante' : 'Entregar pedido al cliente'}</a><button className="dorder-accept" disabled={busy === current.id || current.status === 'ON_THE_WAY' && (!/^\d{6}$/.test(deliveryCode) || !proofUrl)} onClick={() => advance(current)}>{busy === current.id ? <Loader2 size={15} className="ddash-spinner"/> : <CheckCircle size={15}/>} {current.status === 'READY' ? 'Ya recogí el pedido' : 'Confirmar entrega'}</button></div>

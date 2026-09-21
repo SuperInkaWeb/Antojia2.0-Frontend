@@ -156,7 +156,7 @@ function OrderCard({ order, onAction, isUpdating }) {
             <>
               <div className="rdb-driver-chip">
                 <Bike size={14}/> Repartidor: <strong>{order.driver.user?.name}</strong>
-                {order.driver.user?.phone && <span> · {order.driver.user.phone}</span>}
+                {order.driver.user?.phone && <a className="rdb-driver-phone" href={`tel:${order.driver.user.phone}`} onClick={event => event.stopPropagation()}> · {order.driver.user.phone}</a>}
               </div>
             </>
           )}
