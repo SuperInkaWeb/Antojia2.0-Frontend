@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { ChevronDown, ChevronUp, FileImage } from 'lucide-react'
 import AdminTable, { AdminTableFilter, AdminTablePagination, StatusBadge } from './AdminTable.jsx'
 import { useAdminDrivers, useAdminMutations } from '../../hooks/useAdmin.js'
 import './AdminSection.css'
@@ -19,6 +20,7 @@ export default function AdminDrivers() {
   const [status,     setStatus]     = useState('')
   const [isVerified, setIsVerified] = useState('')
   const [page,       setPage]       = useState(1)
+  const [selectedDriver, setSelectedDriver] = useState(null)
   const { data, isLoading } = useAdminDrivers({ status, isVerified, page, limit: 15 })
   const { verifyDriver, suspendDriver, activateDriver } = useAdminMutations()
 
@@ -41,6 +43,12 @@ export default function AdminDrivers() {
     { key: 'status',  label: 'Estado', width: 110, render: d => <StatusBadge status={d.status} map={STATUS_MAP} /> },
     { key: 'actions', label: 'Acciones', width: 160, render: d => (
       <div style={{ display: 'flex', gap: 6 }}>
+        <button
+          className="atable-action atable-action--gray"
+          onClick={() => setSelectedDriver(current => current?.id === d.id ? null : d)}
+        >
+          {selectedDriver?.id === d.id ? <ChevronUp size={13}/> : <ChevronDown size={13}/>} Documentos
+        </button>
         {!d.isVerified && (
           <button
             className="atable-action atable-action--green"
@@ -73,6 +81,32 @@ export default function AdminDrivers() {
         <AdminTableFilter value={isVerified} onChange={v => { setIsVerified(v); setPage(1) }} options={VERIFIED_OPTIONS} placeholder="Verificación" />
       </div>
       <AdminTable columns={columns} data={data?.data} isLoading={isLoading} emptyMsg="No hay repartidores" />
+      {selectedDriver && (
+        <section className="admin-driver-documents">
+          <div className="admin-driver-documents-head">
+            <div>
+              <span className="admin-driver-documents-eyebrow"><FileImage size={14}/> Documentos del repartidor</span>
+              <h3>{selectedDriver.user?.name || 'Repartidor'}</h3>
+              <p>{selectedDriver.dni || 'DNI no registrado'} · {selectedDriver.licensePlate || 'Placa no registrada'}</p>
+            </div>
+            <button type="button" className="admin-driver-documents-close" onClick={() => setSelectedDriver(null)}>Cerrar</button>
+          </div>
+          <div className="admin-driver-document-list">
+            <article className="admin-driver-document">
+              <h4>Foto del DNI</h4>
+              {selectedDriver.dniPhotoUrl ? <img src={selectedDriver.dniPhotoUrl} alt={`DNI de ${selectedDriver.user?.name || 'repartidor'}`} /> : <p className="admin-driver-document-empty">No adjuntó foto del DNI.</p>}
+            </article>
+            <article className="admin-driver-document">
+              <h4>Foto del carné de conducir</h4>
+              {selectedDriver.licensePhotoUrl ? <img src={selectedDriver.licensePhotoUrl} alt={`Carné de ${selectedDriver.user?.name || 'repartidor'}`} /> : <p className="admin-driver-document-empty">No adjuntó foto del carné.</p>}
+            </article>
+            <article className="admin-driver-document">
+              <h4>Foto de placa / vehículo</h4>
+              {selectedDriver.vehiclePhotoUrl ? <img src={selectedDriver.vehiclePhotoUrl} alt={`Vehículo de ${selectedDriver.user?.name || 'repartidor'}`} /> : <p className="admin-driver-document-empty">No adjuntó foto del vehículo.</p>}
+            </article>
+          </div>
+        </section>
+      )}
       <AdminTablePagination page={page} totalPages={data?.pagination?.totalPages} onChange={setPage} />
     </div>
   )
