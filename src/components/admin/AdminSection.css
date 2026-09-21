@@ -64,6 +64,11 @@
   background: #f3f4f6;
 }
 .admin-driver-document-empty { margin: 0; color: #9ca3af; font-size: .78rem; }
+.admin-driver-rating { display: inline-flex; flex-direction: column; gap: 2px; white-space: nowrap; }
+.admin-driver-stars { color: #f59e0b; font-size: .82rem; letter-spacing: 1px; }
+.admin-driver-stars-off { color: #e5e7eb; }
+.admin-driver-rating small { color: #6b7280; font-size: .68rem; letter-spacing: 0; }
+.admin-driver-rating-empty { color: #9ca3af; font-size: .72rem; white-space: nowrap; }
 @media (max-width: 600px) {
   .admin-driver-documents-head { flex-direction: column; }
   .admin-driver-documents-close { align-self: flex-start; }

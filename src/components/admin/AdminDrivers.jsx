@@ -16,6 +16,18 @@ const VERIFIED_OPTIONS = [{ value: 'true', label: 'Verificados' }, { value: 'fal
 
 const VEHICLE_ICONS = { MOTORCYCLE: '🏍️', BICYCLE: '🚲', CAR: '🚗', ON_FOOT: '🚶' }
 
+function DriverRating({ driver }) {
+  const count = Number(driver.ratingCount || 0)
+  if (!count) return <span className="admin-driver-rating-empty">Sin calificaciones</span>
+  const rounded = Math.max(0, Math.min(5, Math.round(Number(driver.rating || 0))))
+  return (
+    <span className="admin-driver-rating" title={`Promedio: ${Number(driver.rating || 0).toFixed(1)} de 5. ${count} calificación${count === 1 ? '' : 'es'}`}>
+      <span className="admin-driver-stars" aria-label={`${rounded} de 5 estrellas`}>{'★'.repeat(rounded)}<span className="admin-driver-stars-off">{'★'.repeat(5 - rounded)}</span></span>
+      <small>{rounded}/5 · {count} {count === 1 ? 'voto' : 'votos'}</small>
+    </span>
+  )
+}
+
 export default function AdminDrivers() {
   const [status,     setStatus]     = useState('')
   const [isVerified, setIsVerified] = useState('')
@@ -41,6 +53,7 @@ export default function AdminDrivers() {
     )},
     { key: 'deliveries', label: 'Entregas', width: 80, render: d => d.totalDeliveries },
     { key: 'status',  label: 'Estado', width: 110, render: d => <StatusBadge status={d.status} map={STATUS_MAP} /> },
+    { key: 'rating', label: 'Calificación', width: 150, render: d => <DriverRating driver={d} /> },
     { key: 'actions', label: 'Acciones', width: 160, render: d => (
       <div style={{ display: 'flex', gap: 6 }}>
         <button
