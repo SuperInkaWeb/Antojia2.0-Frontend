@@ -71,6 +71,7 @@ export default function RegisterRestaurant() {
   const [form, setForm] = useState({
     name: '', ruc: '', category: '', description: '',
     address: '', addressReference: '', district: '', phone: '', latitude: null, longitude: null, logoUrl: '',
+    accountNumber: '',
   })
   const [rucStatus, setRucStatus] = useState(null) // null | 'checking' | 'valid' | 'invalid'
   const [rucData,   setRucData]   = useState(null)
@@ -153,6 +154,7 @@ export default function RegisterRestaurant() {
         latitude:    form.latitude,
         longitude:   form.longitude,
         logoUrl:     form.logoUrl || undefined,
+        accountNumber: form.accountNumber,
       })
       // Invalidar cache del usuario para que Navbar actualice el rol
       qc.invalidateQueries({ queryKey: ['current-user'] })
@@ -165,7 +167,7 @@ export default function RegisterRestaurant() {
     }
   }
 
-  const isValid = rucStatus === 'valid' && form.name && form.category && form.address && form.district && form.latitude != null && form.longitude != null
+  const isValid = rucStatus === 'valid' && form.name && form.category && form.address && form.district && /^\d{8,20}$/.test(form.accountNumber.replace(/\s/g, '')) && form.latitude != null && form.longitude != null
 
   // ── Pantalla de éxito ─────────────────────────────────────
   if (done) {
@@ -398,6 +400,17 @@ export default function RegisterRestaurant() {
                 value={form.phone}
                 onChange={set('phone')}
               />
+            </div>
+          </div>
+
+          <div className="rr-section">
+            <div className="rr-section-title">🏦 Datos para transferencias</div>
+            <div className="rr-field">
+              <label className="rr-label">Número de cuenta <span className="rr-req">*</span></label>
+              <input className="rr-input" type="text" inputMode="numeric" maxLength={20}
+                placeholder="Entre 8 y 20 dígitos" value={form.accountNumber}
+                onChange={e => setForm(f => ({ ...f, accountNumber: e.target.value.replace(/\D/g, '').slice(0, 20) }))}/>
+              <small>Se usará para transferirte tus ganancias y se guardará de forma segura.</small>
             </div>
           </div>
 

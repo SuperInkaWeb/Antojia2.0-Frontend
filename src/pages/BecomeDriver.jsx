@@ -30,6 +30,7 @@ export default function BecomeDriver() {
     licensePhotoUrl: '',
     dniPhotoUrl:     '',
     vehiclePhotoUrl: '',
+    accountNumber: '',
   })
 
   const set = (field) => (e) => setForm(f => ({ ...f, [field]: e.target.value }))
@@ -38,6 +39,7 @@ export default function BecomeDriver() {
 
   const handleSubmit = async () => {
     if (!form.dni.trim()) return toast.error('El DNI es requerido')
+    if (!/^\d{8,20}$/.test(form.accountNumber.replace(/\s/g, ''))) return toast.error('El número de cuenta es requerido y debe tener entre 8 y 20 dígitos')
     if (requiresLicense && !form.licenseNumber.trim())   return toast.error('El número de carné de conducir es requerido')
     if (requiresLicense && !form.licensePhotoUrl.trim()) return toast.error('La URL de la foto del carné es requerida')
 
@@ -98,6 +100,17 @@ export default function BecomeDriver() {
               <input className="bdriver-input" placeholder="ABC-123" value={form.licensePlate} onChange={set('licensePlate')} />
             </div>
           )}
+        </div>
+
+        <div className="bdriver-card">
+          <h2 className="bdriver-section">Datos para transferencias</h2>
+          <div className="bdriver-field">
+            <label>Número de cuenta *</label>
+            <input className="bdriver-input" type="text" inputMode="numeric" maxLength={20}
+              placeholder="Entre 8 y 20 dígitos" value={form.accountNumber}
+              onChange={e => setForm(f => ({ ...f, accountNumber: e.target.value.replace(/\D/g, '').slice(0, 20) }))}/>
+            <small className="bdriver-hint">Se usará para transferirte tus ganancias.</small>
+          </div>
         </div>
 
         <div className="bdriver-card">

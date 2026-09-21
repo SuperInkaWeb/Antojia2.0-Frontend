@@ -29,6 +29,7 @@ export default function RestaurantRegisterForm({ onSubmit, onBack, loading }) {
   const [form, setForm] = useState({
     name: '', ruc: '', category: '', description: '',
     address: '', addressReference: '', district: '', phone: '', latitude: null, longitude: null,
+    accountNumber: '',
   })
 
   const [rucStatus,  setRucStatus]  = useState(null) // null | 'checking' | 'valid' | 'invalid'
@@ -103,11 +104,11 @@ export default function RestaurantRegisterForm({ onSubmit, onBack, loading }) {
 
   const handleSubmit = async () => {
     if (rucStatus !== 'valid') return
-    if (!form.name || !form.category || !form.address || !form.district || form.latitude == null || form.longitude == null) return
+    if (!form.name || !form.category || !form.address || !form.district || !/^\d{8,20}$/.test(form.accountNumber.replace(/\s/g, '')) || form.latitude == null || form.longitude == null) return
     await onSubmit(form)
   }
 
-  const isValid = rucStatus === 'valid' && form.name && form.category && form.address && form.district && form.latitude != null && form.longitude != null
+  const isValid = rucStatus === 'valid' && form.name && form.category && form.address && form.district && /^\d{8,20}$/.test(form.accountNumber.replace(/\s/g, '')) && form.latitude != null && form.longitude != null
 
   return (
     <div className="rrform">
@@ -249,6 +250,15 @@ export default function RestaurantRegisterForm({ onSubmit, onBack, loading }) {
           onChange={set('description')}
           rows={3}
         />
+      </div>
+
+      {/* Info de verificación */}
+      <div className="rrform-field">
+        <label className="rrform-label">Número de cuenta *</label>
+        <input className="rrform-input" type="text" inputMode="numeric" maxLength={20}
+          placeholder="Entre 8 y 20 dígitos" value={form.accountNumber}
+          onChange={e => setForm(f => ({ ...f, accountNumber: e.target.value.replace(/\D/g, '').slice(0, 20) }))}/>
+        <small>Cuenta donde recibirás las transferencias de Foodinka.</small>
       </div>
 
       {/* Info de verificación */}

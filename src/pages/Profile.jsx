@@ -272,6 +272,8 @@ export function SectionRestaurant({ restaurant }) {
       </div>
       <EditableField label="Teléfono" value={restaurant.phone} saving={isPending}
         placeholder="01 234 5678" type="tel" onSave={phone => update({ phone })}/>
+      <BankAccountField value={restaurant.bankAccountNumberMasked} saving={isPending}
+        onSave={accountNumber => update({ accountNumber })}/>
       <EditableField label="Costo de delivery (S/)" value={restaurant.deliveryFee?.toString()} saving={isPending}
         placeholder="0.00" type="number" onSave={v => update({ deliveryFee: parseFloat(v) || 0 })}/>
       <EditableField label="Tiempo estimado (min)" value={restaurant.estimatedTime?.toString()} saving={isPending}
@@ -382,6 +384,8 @@ function SectionDriver({ driver }) {
           <div className="pf-field-val pf-field-val--readonly"><span>{driver.licenseNumber}</span></div>
         </div>
       )}
+      <BankAccountField value={driver?.bankAccountNumberMasked} saving={isPending}
+        onSave={accountNumber => updateVehicle({ accountNumber })}/>
       <div className="pf-field">
         <label className="pf-field-label">Tipo de vehículo</label>
         {!editing ? (
@@ -466,6 +470,40 @@ export default function Profile() {
           </div>
         )}
       </div>
+    </div>
+  )
+}
+
+function BankAccountField({ value, onSave, saving }) {
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState('')
+  const valid = /^\d{8,20}$/.test(draft)
+  const handleSave = async () => {
+    if (!valid) return
+    await onSave(draft)
+    setDraft('')
+    setEditing(false)
+  }
+  return (
+    <div className="pf-field">
+      <label className="pf-field-label">Número de cuenta para transferencias</label>
+      {editing ? (
+        <div className="pf-field-edit">
+          <input className="pf-input" type="text" inputMode="numeric" maxLength={20} autoFocus
+            placeholder="Entre 8 y 20 dígitos" value={draft}
+            onChange={e => setDraft(e.target.value.replace(/\D/g, '').slice(0, 20))}/>
+          <button className="pf-icon-btn pf-save" onClick={handleSave} disabled={saving || !valid}>
+            {saving ? <Loader2 size={15} className="pf-spin"/> : <Check size={15}/>}
+          </button>
+          <button className="pf-icon-btn pf-cancel" onClick={() => { setEditing(false); setDraft('') }}><X size={15}/></button>
+        </div>
+      ) : (
+        <div className="pf-field-val">
+          <span>{value || <span className="pf-empty">Sin configurar</span>}</span>
+          <button className="pf-icon-btn pf-edit" onClick={() => setEditing(true)}><Pencil size={13}/></button>
+        </div>
+      )}
+      <small>Se muestra enmascarada por seguridad.</small>
     </div>
   )
 }

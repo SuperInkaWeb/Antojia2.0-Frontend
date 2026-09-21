@@ -207,9 +207,9 @@ export function useUpdateDriverVehicle() {
   const { getAccessTokenSilently } = useAuth0()
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async ({ vehicleType, licensePlate }) => {
+    mutationFn: async ({ vehicleType, licensePlate, accountNumber }) => {
       await withAuth(getAccessTokenSilently)
-      const res = await api.patch('/api/v1/drivers/vehicle', { vehicleType, licensePlate })
+      const res = await api.patch('/api/v1/drivers/vehicle', { vehicleType, licensePlate, accountNumber })
       return res.data
     },
     onSuccess: () => {
