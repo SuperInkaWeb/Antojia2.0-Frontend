@@ -36,6 +36,9 @@
   color: #374151;
   vertical-align: middle;
 }
+.atable tbody tr.atable-expanded-row { background: #fffaf7; }
+.atable tbody tr.atable-expanded-row:hover { background: #fffaf7; }
+.atable tbody tr.atable-expanded-row > td { padding: 0 16px 16px; }
 
 /* Badge */
 .atable-badge {

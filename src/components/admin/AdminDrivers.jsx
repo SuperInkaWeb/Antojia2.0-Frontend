@@ -74,39 +74,40 @@ export default function AdminDrivers() {
     )},
   ]
 
+  const renderDriverDocuments = driver => (
+    <section className="admin-driver-documents">
+      <div className="admin-driver-documents-head">
+        <div>
+          <span className="admin-driver-documents-eyebrow"><FileImage size={14}/> Documentos del repartidor</span>
+          <h3>{driver.user?.name || 'Repartidor'}</h3>
+          <p>{driver.dni || 'DNI no registrado'} · {driver.licensePlate || 'Placa no registrada'}</p>
+        </div>
+        <button type="button" className="admin-driver-documents-close" onClick={() => setSelectedDriver(null)}>Cerrar</button>
+      </div>
+      <div className="admin-driver-document-list">
+        <article className="admin-driver-document">
+          <h4>Foto del DNI</h4>
+          {driver.dniPhotoUrl ? <img src={driver.dniPhotoUrl} alt={`DNI de ${driver.user?.name || 'repartidor'}`} /> : <p className="admin-driver-document-empty">No adjuntó foto del DNI.</p>}
+        </article>
+        <article className="admin-driver-document">
+          <h4>Foto del carné de conducir</h4>
+          {driver.licensePhotoUrl ? <img src={driver.licensePhotoUrl} alt={`Carné de ${driver.user?.name || 'repartidor'}`} /> : <p className="admin-driver-document-empty">No adjuntó foto del carné.</p>}
+        </article>
+        <article className="admin-driver-document">
+          <h4>Foto de placa / vehículo</h4>
+          {driver.vehiclePhotoUrl ? <img src={driver.vehiclePhotoUrl} alt={`Vehículo de ${driver.user?.name || 'repartidor'}`} /> : <p className="admin-driver-document-empty">No adjuntó foto del vehículo.</p>}
+        </article>
+      </div>
+    </section>
+  )
+
   return (
     <div className="admin-section">
       <div className="admin-section-toolbar">
         <AdminTableFilter value={status}     onChange={v => { setStatus(v);     setPage(1) }} options={STATUS_OPTIONS}   placeholder="Todos los estados" />
         <AdminTableFilter value={isVerified} onChange={v => { setIsVerified(v); setPage(1) }} options={VERIFIED_OPTIONS} placeholder="Verificación" />
       </div>
-      <AdminTable columns={columns} data={data?.data} isLoading={isLoading} emptyMsg="No hay repartidores" />
-      {selectedDriver && (
-        <section className="admin-driver-documents">
-          <div className="admin-driver-documents-head">
-            <div>
-              <span className="admin-driver-documents-eyebrow"><FileImage size={14}/> Documentos del repartidor</span>
-              <h3>{selectedDriver.user?.name || 'Repartidor'}</h3>
-              <p>{selectedDriver.dni || 'DNI no registrado'} · {selectedDriver.licensePlate || 'Placa no registrada'}</p>
-            </div>
-            <button type="button" className="admin-driver-documents-close" onClick={() => setSelectedDriver(null)}>Cerrar</button>
-          </div>
-          <div className="admin-driver-document-list">
-            <article className="admin-driver-document">
-              <h4>Foto del DNI</h4>
-              {selectedDriver.dniPhotoUrl ? <img src={selectedDriver.dniPhotoUrl} alt={`DNI de ${selectedDriver.user?.name || 'repartidor'}`} /> : <p className="admin-driver-document-empty">No adjuntó foto del DNI.</p>}
-            </article>
-            <article className="admin-driver-document">
-              <h4>Foto del carné de conducir</h4>
-              {selectedDriver.licensePhotoUrl ? <img src={selectedDriver.licensePhotoUrl} alt={`Carné de ${selectedDriver.user?.name || 'repartidor'}`} /> : <p className="admin-driver-document-empty">No adjuntó foto del carné.</p>}
-            </article>
-            <article className="admin-driver-document">
-              <h4>Foto de placa / vehículo</h4>
-              {selectedDriver.vehiclePhotoUrl ? <img src={selectedDriver.vehiclePhotoUrl} alt={`Vehículo de ${selectedDriver.user?.name || 'repartidor'}`} /> : <p className="admin-driver-document-empty">No adjuntó foto del vehículo.</p>}
-            </article>
-          </div>
-        </section>
-      )}
+      <AdminTable columns={columns} data={data?.data} isLoading={isLoading} emptyMsg="No hay repartidores" expandedRowId={selectedDriver?.id} renderExpandedRow={renderDriverDocuments} />
       <AdminTablePagination page={page} totalPages={data?.pagination?.totalPages} onChange={setPage} />
     </div>
   )

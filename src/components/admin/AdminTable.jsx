@@ -1,5 +1,6 @@
 // Tabla genérica reutilizable para todas las secciones del admin
 import { ChevronLeft, ChevronRight, Search } from 'lucide-react'
+import { Fragment } from 'react'
 import './AdminTable.css'
 
 export function AdminTableSearch({ value, onChange, placeholder = 'Buscar...' }) {
@@ -59,7 +60,7 @@ export function StatusBadge({ status, map }) {
   )
 }
 
-export default function AdminTable({ columns, data, isLoading, emptyMsg = 'Sin resultados' }) {
+export default function AdminTable({ columns, data, isLoading, emptyMsg = 'Sin resultados', expandedRowId, renderExpandedRow }) {
   if (isLoading) return (
     <div className="atable-wrap">
       <div className="atable-loading">
@@ -84,13 +85,20 @@ export default function AdminTable({ columns, data, isLoading, emptyMsg = 'Sin r
         </thead>
         <tbody>
           {data.map((row, i) => (
-            <tr key={row.id || i}>
-              {columns.map(col => (
-                <td key={col.key}>
-                  {col.render ? col.render(row) : row[col.key] ?? '—'}
-                </td>
-              ))}
-            </tr>
+            <Fragment key={row.id || i}>
+              <tr key={row.id || i}>
+                {columns.map(col => (
+                  <td key={col.key}>
+                    {col.render ? col.render(row) : row[col.key] ?? '—'}
+                  </td>
+                ))}
+              </tr>
+              {renderExpandedRow && expandedRowId === row.id && (
+                <tr className="atable-expanded-row" key={`${row.id || i}-expanded`}>
+                  <td colSpan={columns.length}>{renderExpandedRow(row)}</td>
+                </tr>
+              )}
+            </Fragment>
           ))}
         </tbody>
       </table>
