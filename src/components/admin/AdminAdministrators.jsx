@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useMarketingAdmins, useMarketingAdminInviteMutations, useTechAdmins } from '../../hooks/useAdmin.js'
+import { useMarketingAdmins, useMarketingAdminInviteMutations, useTechAdmins, useFinanceAdmins } from '../../hooks/useAdmin.js'
 import TechAdminInvites from './TechAdminInvites.jsx'
 import FinanceAdminInvites from './FinanceAdminInvites.jsx'
 import './AdminSection.css'
@@ -91,19 +91,29 @@ export default function AdminAdministrators() {
   const [period, setPeriod] = useState('month')
   const [selectedDate, setSelectedDate] = useState(today)
   const [share, setShare] = useState(null)
+  const [marketingSearch, setMarketingSearch] = useState('')
+  const [marketingStatus, setMarketingStatus] = useState('ALL')
   const [adminType, setAdminType] = useState('MARKETING')
   const { data: response, isLoading, isError } = useMarketingAdmins(period, selectedDate)
   const { data: techResponse, isLoading: techLoading } = useTechAdmins(period, selectedDate)
+  const { data: financeResponse, isLoading: financeLoading } = useFinanceAdmins(period, selectedDate)
   const mutations = useMarketingAdminInviteMutations()
   const data = response?.data
   const techData = techResponse?.data
+  const financeData = financeResponse?.data
   const invites = data?.invites || []
+  const filteredInvites = invites.filter(invite => {
+    const text = `${invite.name || ''} ${invite.email || ''}`.toLowerCase()
+    return (!marketingSearch.trim() || text.includes(marketingSearch.trim().toLowerCase())) && (marketingStatus === 'ALL' || invite.status === marketingStatus)
+  })
   const createLink = () => mutations.create.mutate(undefined, { onSuccess: result => showLink(result.data.data) })
   const refreshLink = id => mutations.refreshLink.mutate(id, { onSuccess: result => showLink(result.data.data) })
   const showLink = invite => setShare({ id: invite.id, url: `${window.location.origin}/adminMark/register?invite=${invite.registrationToken}` })
 
 
   return <div className="admin-section">
+    <details className="admin-admin-disclosure" open>
+      <summary>Administradores de marketing <span>{data?.total ?? 0} activos · {invites.length} enlaces</span></summary>
     <section className="admin-marketing-accounts">
       <div className="admin-section-toolbar">
         <div><strong>Cuentas de administrador de marketing</strong><p>{data?.total ?? 0} cuentas activas · {data?.slotsUsed ?? 0} enlaces creados</p></div>
@@ -111,8 +121,9 @@ export default function AdminAdministrators() {
       </div>
       {isError && <p className="admin-marketing-error">No se pudieron cargar las invitaciones. Verifica que el backend esté actualizado y que sus migraciones estén aplicadas.</p>}
       <p className="admin-marketing-help">Comparte el enlace con la persona. Podrá crear su cuenta de Auth0 o iniciar sesión y se le abrirá el dashboard de marketing. El enlace vence en 7 días.</p>
+      <div className="admin-account-filters"><input value={marketingSearch} onChange={event => setMarketingSearch(event.target.value)} placeholder="Buscar por nombre o correo…"/><select value={marketingStatus} onChange={event => setMarketingStatus(event.target.value)}><option value="ALL">Todas</option><option value="APPROVED">Activas / aprobadas</option><option value="SUSPENDED">Suspendidas</option><option value="PENDING">Pendientes</option></select></div>
       {share && <div className="admin-marketing-share"><label htmlFor="marketing-share-link">Enlace listo para compartir</label><input id="marketing-share-link" readOnly value={share.url} onFocus={event => event.target.select()}/><button onClick={() => navigator.clipboard?.writeText(share.url)}>Copiar enlace</button></div>}
-      <div className="admin-marketing-invites">{invites.length === 0 ? <p>Todavía no se han creado enlaces.</p> : invites.map(invite => <article key={invite.id}>
+      <div className="admin-marketing-invites">{filteredInvites.length === 0 ? <p>No hay cuentas con estos filtros.</p> : filteredInvites.map(invite => <article key={invite.id}>
         <div>
           <strong>{invite.email || 'Enlace de registro'}</strong>
           <span className={`admin-marketing-status admin-marketing-status--${invite.status.toLowerCase()}`}>{invite.status === 'SUSPENDED' ? 'Suspendida' : invite.status === 'PENDING' ? 'Pendiente de aprobación' : invite.isMarketingAdmin ? 'Cuenta activa' : 'Aprobada; esperando registro'}</span>
@@ -127,18 +138,20 @@ export default function AdminAdministrators() {
         {share?.id === invite.id && <Link className="admin-marketing-copy-link" to={share.url.replace(window.location.origin, '')}>Abrir enlace de registro</Link>}
       </article>)}</div>
     </section>
+    </details>
 
     <TechAdminInvites />
     <FinanceAdminInvites />
-    <div className="admin-section-toolbar admin-admin-activity-toolbar"><div><strong>Actividad de inicio y cierre de sesión</strong><p>Consulta la actividad y filtra por tipo de administrador, periodo o fecha.</p></div><label className="admin-admin-date">Tipo de administrador<select value={adminType} onChange={event=>setAdminType(event.target.value)}><option value="MARKETING">Administrador de marketing</option><option value="TECH">Administrador técnico</option></select></label><label className="admin-admin-date">Fecha de referencia<input type="date" value={selectedDate} onChange={event=>{setSelectedDate(event.target.value);setPeriod('day')}}/></label><div className="admin-admin-period">{[['day','Día'],['week','Semana'],['month','Mes'],['year','Año']].map(([key,label])=><button className={period===key?'selected':''} key={key} onClick={()=>setPeriod(key)}>{label}</button>)}</div></div>
-    {(isLoading || techLoading) ? <p>Cargando sesiones…</p> : <>
-      <div className="admin-admin-list">{(adminType === 'TECH' ? techData?.admins : data?.admins)?.map(admin=>{
-        const startsAt = new Date(data.rangeStart).getTime()
-        const endsAt = new Date(data.rangeEnd).getTime()
+    <div className="admin-section-toolbar admin-admin-activity-toolbar"><div><strong>Actividad de administradores</strong><p>Consulta a qué hora entran y salen las cuentas de marketing, técnicas y financieras.</p></div><label className="admin-admin-date">Tipo de administrador<select value={adminType} onChange={event=>setAdminType(event.target.value)}><option value="MARKETING">Administrador de marketing</option><option value="TECH">Administrador técnico</option><option value="FINANCE">Administrador financiero</option></select></label><label className="admin-admin-date">Fecha de referencia<input type="date" value={selectedDate} onChange={event=>{setSelectedDate(event.target.value);setPeriod('day')}}/></label><div className="admin-admin-period">{[['day','Día'],['week','Semana'],['month','Mes'],['year','Año']].map(([key,label])=><button className={period===key?'selected':''} key={key} onClick={()=>setPeriod(key)}>{label}</button>)}</div></div>
+    {(isLoading || techLoading || financeLoading) ? <p>Cargando sesiones…</p> : <>
+      <div className="admin-admin-list">{(adminType === 'TECH' ? techData?.admins : adminType === 'FINANCE' ? financeData?.admins : data?.admins)?.map(admin=>{
+        const activityData = adminType === 'TECH' ? techData : adminType === 'FINANCE' ? financeData : data
+        const startsAt = new Date(activityData.rangeStart).getTime()
+        const endsAt = new Date(activityData.rangeEnd).getTime()
         const entries = admin.adminSessions.filter(session=>new Date(session.startedAt).getTime()>=startsAt&&new Date(session.startedAt).getTime()<endsAt).length
         const exits = admin.adminSessions.filter(session=>session.endedAt&&new Date(session.endedAt).getTime()>=startsAt&&new Date(session.endedAt).getTime()<endsAt).length
-        return <article key={admin.id}><div className="admin-admin-account-heading"><div><h3>{admin.name || (adminType === 'TECH' ? 'Administrador técnico' : 'Administrador de marketing')}</h3><span>{admin.email}</span></div><div className="admin-admin-account-stats"><strong>{entries}<small>Inicios</small></strong><strong>{exits}<small>Cierres</small></strong></div></div><div className="admin-admin-legend"><span><i className="admin-admin-entry-key"/>Inicios de sesión</span><span><i className="admin-admin-exit-key"/>Cierres de sesión</span></div><MarketingAdminSessionChart admin={admin} period={period} selectedDate={selectedDate}/>{admin.adminSessions.length>0&&<details className="admin-admin-session-details"><summary>Ver registros exactos ({admin.adminSessions.length})</summary>{admin.adminSessions.map(session=><small key={session.id}>Entró: {new Date(session.startedAt).toLocaleString('es-PE')} · Salió: {session.endedAt?new Date(session.endedAt).toLocaleString('es-PE'):'Sesión activa'}</small>)}</details>}{entries===0&&exits===0&&<p className="admin-admin-no-sessions">No hay actividad para esta cuenta en el periodo seleccionado.</p>}</article>
-      })}{(adminType === 'TECH' ? techData?.admins : data?.admins)?.length===0&&<p>No hay cuentas de {adminType === 'TECH' ? 'administrador técnico' : 'administrador de marketing'} registradas.</p>}</div>
+        return <article key={admin.id}><div className="admin-admin-account-heading"><div><h3>{admin.name || (adminType === 'TECH' ? 'Administrador técnico' : adminType === 'FINANCE' ? 'Administrador financiero' : 'Administrador de marketing')}</h3><span>{admin.email}</span></div><div className="admin-admin-account-stats"><strong>{entries}<small>Inicios</small></strong><strong>{exits}<small>Cierres</small></strong></div></div><div className="admin-admin-legend"><span><i className="admin-admin-entry-key"/>Inicios de sesión</span><span><i className="admin-admin-exit-key"/>Cierres de sesión</span></div><MarketingAdminSessionChart admin={admin} period={period} selectedDate={selectedDate}/>{admin.adminSessions.length>0&&<details className="admin-admin-session-details"><summary>Ver registros exactos ({admin.adminSessions.length})</summary>{admin.adminSessions.map(session=><small key={session.id}>Entró: {new Date(session.startedAt).toLocaleString('es-PE')} · Salió: {session.endedAt?new Date(session.endedAt).toLocaleString('es-PE'):'Sesión activa'}</small>)}</details>}{entries===0&&exits===0&&<p className="admin-admin-no-sessions">No hay actividad para esta cuenta en el periodo seleccionado.</p>}</article>
+      })}{(adminType === 'TECH' ? techData?.admins : adminType === 'FINANCE' ? financeData?.admins : data?.admins)?.length===0&&<p>No hay cuentas de {adminType === 'TECH' ? 'administrador técnico' : adminType === 'FINANCE' ? 'administrador financiero' : 'administrador de marketing'} registradas.</p>}</div>
     </>}
   </div>
 }
