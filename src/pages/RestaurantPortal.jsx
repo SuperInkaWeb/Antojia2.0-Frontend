@@ -255,20 +255,23 @@ const WITHDRAWAL_STATUS = { PENDING: 'Pendiente', PROCESSING: 'En proceso', PAID
 function Deposit({ restaurantId }) {
   const { data: wallet, isLoading } = useRestaurantWallet(restaurantId)
   const withdrawal = useRequestRestaurantWithdrawal(restaurantId)
+  const [isTest, setIsTest] = useState(true)
   const [form, setForm] = useState({ amount: '', bankName: '', accountHolder: '', accountNumber: '', cci: '', accountType: 'CUENTA' })
   const update = event => setForm(current => ({ ...current, [event.target.name]: event.target.value }))
   const submit = event => {
     event.preventDefault()
-    withdrawal.mutate({ ...form, amount: Number(form.amount) })
+    withdrawal.mutate({ ...form, amount: Number(form.amount), isTest })
   }
 
   return <section className="rp-panel rp-deposit">
     <div className="rp-panel-head"><div><h1>Depósito y retiros</h1><p>Revisa el saldo que te acreditó el administrador y solicita una transferencia a tu cuenta.</p></div><Wallet size={21}/></div>
-    <div className="rp-deposit-balance"><div><small>Saldo disponible</small><strong>{isLoading ? 'Cargando…' : money(wallet?.balance)}</strong></div><Wallet size={24}/></div>
+    <div className="rp-deposit-balances"><div className="rp-deposit-balance"><div><small>Saldo disponible real</small><strong>{isLoading ? 'Cargando…' : money(wallet?.balance)}</strong></div><Wallet size={24}/></div><div className="rp-deposit-test-balance"><div><small>Saldo de prueba</small><strong>{isLoading ? 'Cargando…' : money(wallet?.testBalance)}</strong><span>Solo para probar solicitudes. No representa una transferencia real.</span></div><span>🧪</span></div></div>
     <form className="rp-withdraw-form" onSubmit={submit}>
       <h2><Landmark size={18}/> Solicitar retiro bancario</h2>
-      <p>Ingresa una cuenta bancaria o CCI a tu nombre. No escribas claves, CVV ni códigos de seguridad de tarjetas.</p>
-      <label>Monto a retirar<input type="number" name="amount" min="0.01" max={wallet?.balance || 0} step="0.01" required value={form.amount} onChange={update} placeholder="S/ 0.00"/></label>
+      <p>Ingresa los datos que el administrador de marketing revisará. No escribas claves, CVV ni códigos de seguridad de tarjetas.</p>
+      <div className="rp-withdraw-mode"><button type="button" className={isTest ? 'active' : ''} onClick={() => setIsTest(true)}>Solicitud de prueba</button><button type="button" className={!isTest ? 'active' : ''} onClick={() => setIsTest(false)}>Retiro real</button></div>
+      <small className="rp-withdraw-mode-help">{isTest ? 'La solicitud se guardará para revisión, aunque el saldo real sea S/ 0.00. No se realizará ninguna transferencia.' : 'El retiro real solo se permite cuando tienes saldo acreditado.'}</small>
+      <label>Monto a retirar<input type="number" name="amount" min="0.01" max={isTest ? undefined : (wallet?.balance || 0)} step="0.01" required value={form.amount} onChange={update} placeholder="S/ 0.00"/></label>
       <div className="rp-withdraw-grid">
         <label>Banco<input name="bankName" required maxLength="80" value={form.bankName} onChange={update} placeholder="Nombre del banco"/></label>
         <label>Titular de la cuenta<input name="accountHolder" required maxLength="120" value={form.accountHolder} onChange={update} placeholder="Nombre completo"/></label>
@@ -276,13 +279,13 @@ function Deposit({ restaurantId }) {
         <label>Número de cuenta<input name="accountNumber" inputMode="numeric" minLength="8" maxLength="20" value={form.accountNumber} onChange={update} placeholder="8 a 20 dígitos"/></label>
         <label>CCI (opcional)<input name="cci" inputMode="numeric" minLength="20" maxLength="20" value={form.cci} onChange={update} placeholder="20 dígitos"/></label>
       </div>
-      <button className="rp-primary" disabled={withdrawal.isPending || !wallet?.balance || Number(form.amount) > Number(wallet?.balance || 0)}>{withdrawal.isPending ? 'Enviando solicitud…' : 'Solicitar retiro'}</button>
+      <button className="rp-primary" disabled={withdrawal.isPending || (!isTest && (!wallet?.balance || Number(form.amount) > Number(wallet?.balance || 0)))}>{withdrawal.isPending ? 'Enviando solicitud…' : isTest ? 'Enviar solicitud de prueba' : 'Solicitar retiro real'}</button>
     </form>
     <div className="rp-deposit-history">
       <h2>Saldo acreditado</h2>
       {!wallet?.payouts?.length ? <Empty>Aún no tienes depósitos acreditados.</Empty> : wallet.payouts.map(payout => <article key={payout.id}><span>{peruDate(payout.createdAt)}</span><strong>+{money(payout.netAmount)}</strong></article>)}
       <h2>Solicitudes de retiro</h2>
-      {!wallet?.withdrawals?.length ? <Empty>Aún no solicitaste retiros.</Empty> : wallet.withdrawals.map(item => <article key={item.id}><span>{peruDate(item.createdAt)} · {item.bankName} · {item.destinationAccountMasked} · {WITHDRAWAL_STATUS[item.status] || item.status}</span><strong>−{money(item.amount)}</strong></article>)}
+      {!wallet?.withdrawals?.length ? <Empty>Aún no solicitaste retiros.</Empty> : wallet.withdrawals.map(item => <article key={item.id}><span>{item.isTest ? '🧪 Solicitud de prueba · ' : ''}{peruDate(item.createdAt)} · {item.bankName} · {item.destinationAccountMasked} · {WITHDRAWAL_STATUS[item.status] || item.status}</span><strong>−{money(item.amount)}</strong></article>)}
     </div>
   </section>
 }

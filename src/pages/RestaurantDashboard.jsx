@@ -6,6 +6,9 @@ import {
   ShoppingBag, CircleCheck, Flame, PackageCheck,
   Ban, ChevronLeft, ChevronRight,
 } from 'lucide-react'
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
 import Navbar from '../components/layout/Navbar.jsx'
 import OrderStatusBadge from '../components/orders/OrderStatusBadge.jsx'
 import { useCurrentUser } from '../hooks/useCurrentUser.js'
@@ -35,6 +38,23 @@ const STATUS_TABS = [
   { value: 'DELIVERED',  label: 'Entregados' },
   { value: 'CANCELLED',  label: 'Cancelados' },
 ]
+
+const deliveryIcon = new L.DivIcon({ className: 'rdb-live-marker', html: '<span>🛵</span>', iconSize: [34, 34], iconAnchor: [17, 17] })
+
+function RecenterMap({ position }) {
+  const map = useMap()
+  if (position) map.setView(position, Math.max(map.getZoom(), 15))
+  return null
+}
+
+function DeliveryTracking({ order }) {
+  const hasLocation = order.driver?.currentLatitude != null && order.driver?.currentLongitude != null
+  if (!['READY', 'ON_THE_WAY'].includes(order.status) || !order.driver) return null
+  if (!hasLocation) return <div className="rdb-tracking rdb-tracking--waiting"><Bike size={15}/> Esperando la ubicación GPS del repartidor…</div>
+  const position = [order.driver.currentLatitude, order.driver.currentLongitude]
+  const lastUpdate = order.driver.lastLocationAt ? new Date(order.driver.lastLocationAt).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : ''
+  return <div className="rdb-tracking"><div className="rdb-tracking-head"><strong><span className="rdb-live-dot"/> Repartidor en tiempo real</strong><small>Actualizado {lastUpdate}</small></div><MapContainer center={position} zoom={15} scrollWheelZoom={false} className="rdb-tracking-map"><TileLayer attribution="&copy; OpenStreetMap" url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"/><RecenterMap position={position}/><Marker position={position} icon={deliveryIcon}><Popup>{order.driver.user?.name || 'Repartidor'}<br/>Última ubicación: {lastUpdate}</Popup></Marker></MapContainer><a className="rdb-tracking-link" href={`https://www.google.com/maps/search/?api=1&query=${position[0]},${position[1]}`} target="_blank" rel="noreferrer">Abrir ubicación en Google Maps</a></div>
+}
 
 // ── Tarjeta de pedido expandible ──────────────────────────────
 function OrderCard({ order, onAction, isUpdating }) {
@@ -160,6 +180,8 @@ function OrderCard({ order, onAction, isUpdating }) {
               </div>
             </>
           )}
+
+          <DeliveryTracking order={order}/>
 
           {order.deliveryProofUrl && (
             <div className="rdb-detail-section">

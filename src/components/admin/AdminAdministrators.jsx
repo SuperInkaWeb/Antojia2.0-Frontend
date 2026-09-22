@@ -105,8 +105,8 @@ export default function AdminAdministrators() {
   return <div className="admin-section">
     <section className="admin-marketing-accounts">
       <div className="admin-section-toolbar">
-        <div><strong>Cuentas de administrador de marketing</strong><p>{data?.slotsUsed ?? 0} de 2 enlaces/cuentas creados</p></div>
-        <button onClick={createLink} disabled={isLoading || isError || mutations.create.isPending || (data?.slotsUsed ?? 0) >= 2}>Crear enlace de registro</button>
+        <div><strong>Cuentas de administrador de marketing</strong><p>{data?.total ?? 0} cuentas activas · {data?.slotsUsed ?? 0} enlaces creados</p></div>
+        <button onClick={createLink} disabled={isLoading || isError || mutations.create.isPending}>Crear enlace de registro</button>
       </div>
       {isError && <p className="admin-marketing-error">No se pudieron cargar las invitaciones. Verifica que el backend esté actualizado y que sus migraciones estén aplicadas.</p>}
       <p className="admin-marketing-help">Comparte el enlace con la persona. Podrá crear su cuenta de Auth0 o iniciar sesión y se le abrirá el dashboard de marketing. El enlace vence en 7 días.</p>

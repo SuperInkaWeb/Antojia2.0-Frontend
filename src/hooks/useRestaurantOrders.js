@@ -23,7 +23,8 @@ export function useRestaurantOrders(restaurantId, params = {}) {
       return data
     },
     enabled: isAuthenticated && !!restaurantId,
-    refetchInterval: 30000,
+    // La ubicación del delivery se actualiza mientras el pedido está en ruta.
+    refetchInterval: 5000,
     placeholderData: (prev) => prev,
   })
 }

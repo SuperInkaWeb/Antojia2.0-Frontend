@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth0 } from '@auth0/auth0-react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
@@ -82,6 +82,24 @@ export default function DriverDashboard() {
   }
 
   const current = active[0]
+  const currentId = current?.id
+  const currentStatus = current?.status
+  useEffect(() => {
+    if (!currentId || !['READY', 'ON_THE_WAY'].includes(currentStatus) || !navigator.geolocation) return undefined
+    let lastSentAt = 0
+    const sendLocation = async position => {
+      const now = Date.now()
+      if (now - lastSentAt < 5000) return
+      lastSentAt = now
+      try {
+        const token = await getAccessTokenSilently({ authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE } })
+        setAuthToken(token)
+        await api.patch('/api/v1/drivers/location', { latitude: position.coords.latitude, longitude: position.coords.longitude })
+      } catch { /* La entrega continúa aunque el navegador pierda temporalmente el GPS. */ }
+    }
+    const watchId = navigator.geolocation.watchPosition(sendLocation, () => {}, { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 })
+    return () => navigator.geolocation.clearWatch(watchId)
+  }, [currentId, currentStatus, getAccessTokenSilently])
   const currentDestination = current?.status === 'READY'
     ? (current.restaurant?.latitude != null && current.restaurant?.longitude != null
       ? `${current.restaurant.latitude},${current.restaurant.longitude}`
