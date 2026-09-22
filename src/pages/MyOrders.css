@@ -211,6 +211,22 @@
   padding-top: 10px;
   border-top: 1px solid #f3f4f6;
 }
+.myorder-change-driver {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 12px;
+  padding: 8px 12px;
+  border: 1px solid #2563eb;
+  border-radius: 9px;
+  background: #fff;
+  color: #1d4ed8;
+  font-size: .78rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+.myorder-change-driver:hover:not(:disabled) { background: #eff6ff; }
+.myorder-change-driver:disabled { opacity: .6; cursor: wait; }
 .myorder-total {
   font-size: 0.95rem;
   font-weight: 800;

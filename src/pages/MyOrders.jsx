@@ -1,9 +1,12 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import toast from 'react-hot-toast'
+import { useQueryClient } from '@tanstack/react-query'
 import { ShoppingBag, ChevronRight, Calendar, Bike, Star, RefreshCw } from 'lucide-react'
 import Navbar from '../components/layout/Navbar.jsx'
 import OrderStatusBadge from '../components/orders/OrderStatusBadge.jsx'
 import { useMyOrders, useRateDriver } from '../hooks/useOrders.js'
+import { useApi } from '../hooks/useApi.js'
 import './MyOrders.css'
 
 const FILTER_OPTIONS = [
@@ -19,7 +22,10 @@ const FILTER_OPTIONS = [
 
 function OrderCard({ order, onClick }) {
   const [selectedScore, setSelectedScore] = useState(0)
+  const [changingDriver, setChangingDriver] = useState(false)
   const rateDriver = useRateDriver()
+  const api = useApi()
+  const queryClient = useQueryClient()
   const date     = new Date(order.createdAt).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' })
   const time     = new Date(order.createdAt).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })
   const isActive = !['DELIVERED', 'CANCELLED'].includes(order.status)
@@ -29,6 +35,26 @@ function OrderCard({ order, onClick }) {
     event.stopPropagation()
     if (!selectedScore) return
     await rateDriver.mutateAsync({ orderId: order.id, score: selectedScore })
+  }
+
+  const handleChangeDriver = async event => {
+    event.stopPropagation()
+    if (!order.driver) {
+      toast('Este pedido todavía no tiene un repartidor asignado.')
+      return
+    }
+    if (!window.confirm('¿Quieres cambiar de repartidor? El repartidor actual dejará de tener este pedido.')) return
+    setChangingDriver(true)
+    try {
+      await api.patch(`/api/v1/orders/${order.id}/change-driver`)
+      await queryClient.invalidateQueries({ queryKey: ['my-orders'] })
+      await queryClient.invalidateQueries({ queryKey: ['order', order.id] })
+      toast.success('El pedido volvió a estar disponible para otro repartidor')
+    } catch (error) {
+      toast.error(error?.response?.data?.message || 'No se pudo cambiar de repartidor')
+    } finally {
+      setChangingDriver(false)
+    }
   }
 
   return (
@@ -69,6 +95,18 @@ function OrderCard({ order, onClick }) {
         <span className="myorder-total">S/ {order.total?.toFixed(2)}</span>
         <OrderStatusBadge status={order.status} />
       </div>
+
+      {order.type === 'DELIVERY' && isActive && (
+        <button
+          type="button"
+          className="myorder-change-driver"
+          onClick={handleChangeDriver}
+          disabled={changingDriver}
+        >
+          <RefreshCw size={15} className={changingDriver ? 'myorders-refresh-icon--spinning' : ''} />
+          {changingDriver ? 'Cambiando repartidor…' : 'Cambiar repartidor'}
+        </button>
+      )}
 
       {canRateDriver && (
         <div className="myorder-rating" onClick={event => event.stopPropagation()}>
