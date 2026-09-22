@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useAuth0 } from '@auth0/auth0-react'
 import { ShieldAlert, LogOut } from 'lucide-react'
 import { useCurrentUser } from '../../hooks/useCurrentUser.js'
-import { useMarketingAnalytics, useMarketingSettlements, useMarketingPayoutMutation, useMarketingCreditRestaurant } from '../../hooks/useAdmin.js'
+import { useMarketingAnalytics, useMarketingSettlements, useMarketingCreditRestaurant } from '../../hooks/useAdmin.js'
 import { api, setAuthToken } from '../../config/api.js'
 import './Dashboard.css'
 import './MarketingDashboard.css'
@@ -78,9 +78,7 @@ function Analytics() {
 
 function Payouts() {
   const { data: response, isLoading } = useMarketingSettlements()
-  const mutation = useMarketingPayoutMutation()
   const credit = useMarketingCreditRestaurant()
-  const [refs, setRefs] = useState({})
   const settlements = response?.data
   const restaurants = settlements?.restaurants || []
   const withdrawals = settlements?.withdrawalRequests || []
@@ -92,7 +90,7 @@ function Payouts() {
       <button className="marketing-credit-button" disabled={credit.isPending||r.pendingSales<0.01} onClick={()=>credit.mutate(r.id)}>{credit.isPending?'Acreditando…':'Pagar restaurante'}</button><small className="marketing-settlement-note">Acredita el neto de ventas reales al saldo del restaurante. La transferencia bancaria se registra en solicitudes de retiro.</small>
       <div className="marketing-payout-history"><strong>Últimas liquidaciones</strong>{r.payouts?.length?r.payouts.slice(0,5).map((p,i)=><span key={`${p.createdAt}-${i}`}>{new Date(p.createdAt).toLocaleString('es-PE')} · {money(p.netAmount)} al restaurante</span>):<span>Aún no se han acreditado liquidaciones.</span>}</div>
     </article>)}</section>
-    <section className="marketing-card"><h2>Solicitudes de retiro pendientes</h2>{withdrawals.length===0?<p>No hay retiros pendientes.</p>:withdrawals.map(w=><div className={`marketing-withdrawal ${w.isTest ? 'marketing-withdrawal--test' : ''}`} key={w.id}><div><strong>{w.isTest ? '🧪 Solicitud de prueba · ' : ''}{w.restaurant.name}</strong><span>{money(w.amount)} · {new Date(w.createdAt).toLocaleString('es-PE')}</span><span>{w.bankName} · {w.accountHolder} · {w.destinationAccountMasked}</span>{w.bankDetails?.accountNumber&&<span>Cuenta: {w.bankDetails.accountNumber}</span>}{w.bankDetails?.cci&&<span>CCI: {w.bankDetails.cci}</span>}</div>{!w.isTest && <input placeholder="N.º de operación" value={refs[w.id]||''} onChange={e=>setRefs({...refs,[w.id]:e.target.value})}/>}<button disabled={mutation.isPending||(!w.isTest && !refs[w.id]?.trim())} onClick={()=>mutation.mutate({id:w.id,transferReference:refs[w.id]?.trim() || ''})}>{w.isTest ? 'Marcar como revisada' : 'Marcar como transferido'}</button></div>)}</section>
+    <section className="marketing-card"><h2>Solicitudes de retiro</h2>{withdrawals.length===0?<p>No hay retiros pendientes.</p>:withdrawals.map(w=><div className={`marketing-withdrawal ${w.isTest ? 'marketing-withdrawal--test' : ''}`} key={w.id}><div><strong>{w.isTest ? '🧪 Solicitud de prueba · ' : ''}{w.restaurant.name}</strong><span>{money(w.amount)} · {new Date(w.createdAt).toLocaleString('es-PE')}</span><span>{w.bankName} · {w.accountHolder} · {w.destinationAccountMasked}</span>{w.bankDetails?.accountNumber&&<span>Cuenta: {w.bankDetails.accountNumber}</span>}{w.bankDetails?.cci&&<span>CCI: {w.bankDetails.cci}</span>}</div><small className="marketing-settlement-note">La transferencia y el registro del pago los gestiona AdminFinanzas.</small></div>)}</section>
   </>
 }
 

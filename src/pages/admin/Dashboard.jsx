@@ -7,7 +7,6 @@ import AdminRestaurants from '../../components/admin/AdminRestaurants.jsx'
 import AdminUsers from '../../components/admin/AdminUsers.jsx'
 import AdminOrders from '../../components/admin/AdminOrders.jsx'
 import AdminPayments from '../../components/admin/AdminPayments.jsx'
-import AdminRestaurantPayouts from '../../components/admin/AdminRestaurantPayouts.jsx'
 import AdminDrivers from '../../components/admin/AdminDrivers.jsx'
 import AdminAdministrators from '../../components/admin/AdminAdministrators.jsx'
 import './Dashboard.css'
@@ -19,7 +18,6 @@ const SECTIONS = {
   users:       { label: 'Usuarios',      component: AdminUsers },
   orders:      { label: 'Pedidos',       component: AdminOrders },
   payments:    { label: 'Pagos',         component: AdminPayments },
-  settlements: { label: 'Pagos a restaurantes', component: AdminRestaurantPayouts },
   drivers:     { label: 'Repartidores',  component: AdminDrivers },
   administrators: { label: 'Administradores', component: AdminAdministrators },
 }
