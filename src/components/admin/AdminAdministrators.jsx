@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useMarketingAdmins, useMarketingAdminInviteMutations, useTechAdmins } from '../../hooks/useAdmin.js'
 import TechAdminInvites from './TechAdminInvites.jsx'
+import FinanceAdminInvites from './FinanceAdminInvites.jsx'
 import './AdminSection.css'
 import './AdminAdministrators.css'
 
@@ -128,6 +129,7 @@ export default function AdminAdministrators() {
     </section>
 
     <TechAdminInvites />
+    <FinanceAdminInvites />
     <div className="admin-section-toolbar admin-admin-activity-toolbar"><div><strong>Actividad de inicio y cierre de sesión</strong><p>Consulta la actividad y filtra por tipo de administrador, periodo o fecha.</p></div><label className="admin-admin-date">Tipo de administrador<select value={adminType} onChange={event=>setAdminType(event.target.value)}><option value="MARKETING">Administrador de marketing</option><option value="TECH">Administrador técnico</option></select></label><label className="admin-admin-date">Fecha de referencia<input type="date" value={selectedDate} onChange={event=>{setSelectedDate(event.target.value);setPeriod('day')}}/></label><div className="admin-admin-period">{[['day','Día'],['week','Semana'],['month','Mes'],['year','Año']].map(([key,label])=><button className={period===key?'selected':''} key={key} onClick={()=>setPeriod(key)}>{label}</button>)}</div></div>
     {(isLoading || techLoading) ? <p>Cargando sesiones…</p> : <>
       <div className="admin-admin-list">{(adminType === 'TECH' ? techData?.admins : data?.admins)?.map(admin=>{

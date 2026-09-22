@@ -137,6 +137,26 @@ export function useTechAdminInviteMutations() {
   return { create: mutation('post', '/api/v1/admin/tech-admins/link', 'Enlace técnico creado'), refreshLink: mutation('post', '/api/v1/admin/tech-admins', 'Enlace técnico renovado'), approve: mutation('patch', '/api/v1/admin/tech-admins', 'Acceso técnico aprobado'), suspend: mutation('patch', '/api/v1/admin/tech-admins', 'Acceso técnico suspendido') }
 }
 
+export function useFinanceAdmins(period = 'month', date) { return useAuthenticatedQuery('finance-admins', '/api/v1/admin/finance-admins', { period, date }) }
+export function useFinanceAdminInviteMutations() {
+  const { getAccessTokenSilently } = useAuth0(); const qc = useQueryClient(); const invalidate = () => qc.invalidateQueries({ queryKey: ['finance-admins'] })
+  const withToken = async fn => { const token = await getAccessTokenSilently({ authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE } }); setAuthToken(token); return fn() }
+  const mutation = (method, url, message) => useMutation({ mutationFn: value => withToken(() => method === 'post' ? api.post(value ? `${url}/${value}` : url) : api.patch(`${url}/${value}`)), onSuccess: () => { toast.success(message); invalidate() }, onError: err => toast.error(err?.response?.data?.message || 'No se pudo actualizar la invitación financiera') })
+  return { create: mutation('post', '/api/v1/admin/finance-admins/link', 'Enlace financiero creado'), refreshLink: mutation('post', '/api/v1/admin/finance-admins', 'Enlace financiero renovado'), approve: mutation('patch', '/api/v1/admin/finance-admins', 'Acceso financiero aprobado'), suspend: mutation('patch', '/api/v1/admin/finance-admins', 'Acceso financiero suspendido') }
+}
+
+export function useFinanceDashboard() {
+  return useAuthenticatedQuery('finance-dashboard', '/api/v1/admin-finance/dashboard', {}, { refetchInterval: 15000 })
+}
+
+export function useFinanceWithdrawalMutations() {
+  const { getAccessTokenSilently } = useAuth0(); const qc = useQueryClient()
+  const auth = async () => { const token = await getAccessTokenSilently({ authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE } }); setAuthToken(token) }
+  const accept = useMutation({ mutationFn: async id => { await auth(); return api.patch(`/api/v1/admin-finance/withdrawals/${id}/accept`) }, onSuccess: () => { toast.success('Solicitud aceptada para pago'); qc.invalidateQueries({ queryKey: ['finance-dashboard'] }) }, onError: err => toast.error(err?.response?.data?.message || 'No se pudo aceptar la solicitud') })
+  const pay = useMutation({ mutationFn: async ({ id, transferReference }) => { await auth(); return api.patch(`/api/v1/admin-finance/withdrawals/${id}/paid`, { transferReference }) }, onSuccess: () => { toast.success('Pago registrado correctamente'); qc.invalidateQueries({ queryKey: ['finance-dashboard'] }) }, onError: err => toast.error(err?.response?.data?.message || 'No se pudo registrar el pago') })
+  return { accept, pay }
+}
+
 export function useMarketingPayoutMutation() {
   const { getAccessTokenSilently } = useAuth0()
   const qc = useQueryClient()

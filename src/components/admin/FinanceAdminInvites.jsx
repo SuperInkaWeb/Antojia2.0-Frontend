@@ -1,0 +1,23 @@
+import { useState } from 'react'
+import { useFinanceAdminInviteMutations, useFinanceAdmins } from '../../hooks/useAdmin.js'
+
+export default function FinanceAdminInvites() {
+  const { data: response, isLoading, isError } = useFinanceAdmins()
+  const mutations = useFinanceAdminInviteMutations()
+  const data = response?.data
+  const invites = data?.invites || []
+  const [share, setShare] = useState(null)
+  const showLink = invite => setShare(`${window.location.origin}/adminFin/register?invite=${invite.registrationToken}`)
+  const create = () => mutations.create.mutate(undefined, { onSuccess: result => showLink(result.data.data) })
+  const refresh = id => mutations.refreshLink.mutate(`${id}/link`, { onSuccess: result => showLink(result.data.data) })
+  const approve = id => mutations.approve.mutate(`${id}/approve`)
+  const suspend = id => mutations.suspend.mutate(`${id}/suspend`)
+
+  return <section className="admin-marketing-accounts">
+    <div className="admin-section-toolbar"><div><strong>Cuentas de administrador financiero</strong><p>{data?.total ?? 0} cuentas activas · {data?.slotsUsed ?? 0} enlaces creados</p></div><button onClick={create} disabled={isLoading || isError || mutations.create.isPending}>Crear enlace de registro</button></div>
+    {isError && <p className="admin-marketing-error">No se pudieron cargar las invitaciones financieras.</p>}
+    <p className="admin-marketing-help">El administrador financiero gestionará las solicitudes de pago a restaurantes. El enlace vence en 7 días.</p>
+    {share && <div className="admin-marketing-share"><label>Enlace financiero listo para compartir</label><input readOnly value={share} onFocus={event => event.target.select()}/><button onClick={() => navigator.clipboard?.writeText(share)}>Copiar enlace</button></div>}
+    <div className="admin-marketing-invites">{invites.length === 0 ? <p>Todavía no se han creado enlaces financieros.</p> : invites.map(invite => <article key={invite.id}><div><strong>{invite.email || 'Enlace de registro financiero'}</strong><span className={`admin-marketing-status admin-marketing-status--${invite.status.toLowerCase()}`}>{invite.status === 'SUSPENDED' ? 'Suspendida' : invite.isFinanceAdmin ? 'Cuenta activa' : 'Aprobada; esperando registro'}</span><small>{invite.accountCreated ? `Cuenta Auth0 creada${invite.name ? ` por ${invite.name}` : ''}` : invite.tokenActive ? 'Enlace activo; aún no se ha registrado' : 'Enlace vencido o pendiente de renovar'}</small><small>Creado: {new Date(invite.createdAt).toLocaleString('es-PE')}</small></div><div className="admin-marketing-actions">{!invite.isFinanceAdmin && invite.status === 'APPROVED' && <button onClick={() => refresh(invite.id)}>{invite.tokenActive ? 'Renovar enlace' : 'Generar enlace'}</button>}{invite.status !== 'APPROVED' && <button onClick={() => approve(invite.id)}>Aprobar / reactivar</button>}{invite.status !== 'SUSPENDED' && <button className="admin-marketing-suspend" onClick={() => suspend(invite.id)}>Suspender</button>}</div></article>)}</div>
+  </section>
+}

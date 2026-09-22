@@ -16,7 +16,7 @@ export function useOnboarding() {
     if (isLoading || !isAuthenticated || synced) return
     if (['/onboarding', '/callback'].includes(location.pathname)) return
     // El registro marketing valida el token e inicializa la cuenta en una sola petición.
-    if (location.pathname === '/adminMark/register') return
+    if (['/adminMark/register', '/adminTec/register', '/adminFin/register'].includes(location.pathname)) return
 
     const sync = async () => {
       try {
@@ -27,6 +27,7 @@ export function useOnboarding() {
           RESTAURANT_OWNER: '/restaurant-dashboard',
           ADMIN: '/admin',
           MARKETING_ADMIN: '/adminMark',
+          FINANCE_ADMIN: '/adminFin',
           CONSUMER: '/',
         }
         const loginRole = sessionStorage.getItem('foodinka_login_role')
@@ -34,13 +35,13 @@ export function useOnboarding() {
 
         // Al iniciar sesión, la ruta se decide por el rol real almacenado
         // en la cuenta, no solo por la opción que se presionó en el modal.
-        if (loginRole && location.pathname !== '/adminMark/register') {
+        if (loginRole && !['/adminMark/register', '/adminTec/register', '/adminFin/register'].includes(location.pathname)) {
           navigate(roleHome[data.data?.role] || '/', { replace: true })
           return
         }
 
         // Solo redirigir al onboarding si es usuario NUEVO
-        if (data.message === 'Usuario creado' && location.pathname !== '/adminMark/register') {
+        if (data.message === 'Usuario creado' && !['/adminMark/register', '/adminTec/register', '/adminFin/register'].includes(location.pathname)) {
           const target = sessionStorage.getItem('foodinka_registration_target')
           sessionStorage.removeItem('foodinka_registration_target')
           navigate(target || '/onboarding')

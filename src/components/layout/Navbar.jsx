@@ -25,9 +25,10 @@ export default function Navbar({ cartCount, searchValue = '', onSearchChange, di
   const isAdmin           = role === 'ADMIN'
   const isMarketingAdmin  = role === 'MARKETING_ADMIN'
   const isTechAdmin       = role === 'TECH_ADMIN'
+  const isFinanceAdmin    = role === 'FINANCE_ADMIN'
   const isDriver          = role === 'DELIVERY'
   const isRestaurantOwner = role === 'RESTAURANT_OWNER'
-  const isConsumer        = isAuthenticated && !isAdmin && !isMarketingAdmin && !isTechAdmin && !isDriver && !isRestaurantOwner
+  const isConsumer        = isAuthenticated && !isAdmin && !isMarketingAdmin && !isTechAdmin && !isFinanceAdmin && !isDriver && !isRestaurantOwner
   const logoDestination   = isDriver ? '/driver' : '/'
 
   const handleLogout = () => {
@@ -179,6 +180,7 @@ export default function Navbar({ cartCount, searchValue = '', onSearchChange, di
                 )}
                 {isMarketingAdmin && <Link to="/adminMark" onClick={() => setMenuOpen(false)}>Dashboard de marketing</Link>}
                 {isTechAdmin && <Link to="/adminTec" onClick={() => setMenuOpen(false)}>Dashboard de reportes</Link>}
+                {isFinanceAdmin && <Link to="/adminFin" onClick={() => setMenuOpen(false)}>Dashboard financiero</Link>}
                 <button className="navbar-drawer-logout" onClick={handleLogout}><LogOut size={16}/> Cerrar sesión</button>
               </>
           }

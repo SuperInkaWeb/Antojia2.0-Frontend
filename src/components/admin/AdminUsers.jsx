@@ -10,6 +10,7 @@ const ROLE_MAP = {
   ADMIN:            { label: 'Admin',       bg: '#fef2f2', color: '#dc2626' },
   MARKETING_ADMIN:  { label: 'AdminMark',   bg: '#faf5ff', color: '#7c3aed' },
   TECH_ADMIN:       { label: 'AdminTec',    bg: '#ecfeff', color: '#0e7490' },
+  FINANCE_ADMIN:    { label: 'AdminFin',    bg: '#ecfdf5', color: '#047857' },
 }
 
 const ROLE_OPTIONS = [
@@ -19,6 +20,7 @@ const ROLE_OPTIONS = [
   { value: 'ADMIN',            label: 'Admins' },
   { value: 'MARKETING_ADMIN',  label: 'Admins de marketing' },
   { value: 'TECH_ADMIN',       label: 'Admins técnicos' },
+  { value: 'FINANCE_ADMIN',    label: 'Admins financieros' },
 ]
 
 export default function AdminUsers() {
