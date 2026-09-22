@@ -15,7 +15,7 @@ export default function OrderDetail() {
   const { id }    = useParams()
   const navigate  = useNavigate()
   const api       = useApi()
-  const { data: order, isLoading, isError, refetch } = useOrderDetail(id)
+  const { data: order, isLoading, isError, isFetching, refetch } = useOrderDetail(id)
   const [checkingPayment, setCheckingPayment] = useState(false)
   const removePurchasedItems = useCartStore(state => state.removePurchasedItems)
 
@@ -101,7 +101,19 @@ export default function OrderDetail() {
             <p className="odetail-number">Pedido #{order.orderNumber?.slice(-8)}</p>
             <p className="odetail-date">{date} · {time}</p>
           </div>
-          <OrderStatusBadge status={order.status} size="md" />
+          <div className="odetail-header-actions">
+            <button
+              type="button"
+              className="odetail-refresh-btn"
+              onClick={() => refetch()}
+              disabled={isFetching}
+              aria-label="Actualizar estado del pedido"
+            >
+              <RefreshCw size={15} className={isFetching ? 'odetail-spin' : ''} />
+              {isFetching ? 'Actualizando…' : 'Actualizar'}
+            </button>
+            <OrderStatusBadge status={order.status} size="md" />
+          </div>
         </div>
 
         {/* Barra de progreso */}

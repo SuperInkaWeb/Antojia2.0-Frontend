@@ -1,6 +1,6 @@
 import { createElement } from 'react'
 import { Users, Store, ShoppingBag, DollarSign, TrendingUp, TrendingDown, Clock } from 'lucide-react'
-import { useMetrics, useRevenueChart } from '../../hooks/useAdmin.js'
+import { useAdminMutations, useMetrics, useRevenueChart } from '../../hooks/useAdmin.js'
 import './AdminMetrics.css'
 
 function StatCard({ icon, label, value, sub, trend, color }) {
@@ -50,6 +50,7 @@ function SimpleBarChart({ data }) {
 export default function AdminMetrics() {
   const { data: metrics, isLoading } = useMetrics()
   const { data: chart }              = useRevenueChart()
+  const { updateCommission } = useAdminMutations()
 
   if (isLoading) return (
     <div className="metrics-skeleton">
@@ -61,6 +62,19 @@ export default function AdminMetrics() {
 
   return (
     <div className="metrics">
+
+      <section className="metrics-commission-card">
+        <div>
+          <span className="metrics-commission-eyebrow">Configuración financiera</span>
+          <h2>Porcentaje de comisión del administrador</h2>
+          <p>Se aplica a las nuevas liquidaciones: el porcentaje elegido es para Foodinka y el resto queda disponible para el restaurante.</p>
+        </div>
+        <label>Comisión
+          <select value={metrics.revenue.commissionPercent} onChange={event => updateCommission.mutate(Number(event.target.value))} disabled={updateCommission.isPending}>
+            {Array.from({ length: 21 }, (_, index) => index + 20).map(value => <option key={value} value={value}>{value}%</option>)}
+          </select>
+        </label>
+      </section>
 
       {/* KPI Cards */}
       <div className="metrics-grid">

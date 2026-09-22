@@ -17,6 +17,25 @@
   color: #111827;
   margin: 0;
 }
+.myorders-refresh {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 8px 13px;
+  border: 1px solid #e85d24;
+  border-radius: 10px;
+  background: #fff;
+  color: #dd531d;
+  font-size: .82rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+.myorders-refresh:hover:not(:disabled) { background: #fff3ed; }
+.myorders-refresh:disabled { opacity: .6; cursor: wait; }
+.myorders-refresh-icon--spinning { animation: myorders-refresh-spin .8s linear infinite; }
+@keyframes myorders-refresh-spin { to { transform: rotate(360deg); } }
 
 /* Filtros */
 .myorders-filters {

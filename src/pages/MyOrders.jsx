@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ShoppingBag, ChevronRight, Calendar, Bike, Star } from 'lucide-react'
+import { ShoppingBag, ChevronRight, Calendar, Bike, Star, RefreshCw } from 'lucide-react'
 import Navbar from '../components/layout/Navbar.jsx'
 import OrderStatusBadge from '../components/orders/OrderStatusBadge.jsx'
 import { useMyOrders, useRateDriver } from '../hooks/useOrders.js'
@@ -93,7 +93,7 @@ export default function MyOrders() {
   const [typeFilter,   setTypeFilter]   = useState('')
   const [page,         setPage]         = useState(1)
 
-  const { data, isLoading } = useMyOrders({
+  const { data, isLoading, isFetching, refetch } = useMyOrders({
     status: statusFilter,
     type:   typeFilter,
     page,
@@ -112,6 +112,17 @@ export default function MyOrders() {
       <Navbar />
       <div className="myorders-inner">
         <h1 className="myorders-title">Mis pedidos</h1>
+
+        <button
+          type="button"
+          className="myorders-refresh"
+          onClick={() => refetch()}
+          disabled={isFetching}
+          aria-label="Actualizar mis pedidos"
+        >
+          <RefreshCw size={16} className={isFetching ? 'myorders-refresh-icon--spinning' : ''} />
+          {isFetching ? 'Actualizando…' : 'Actualizar pedidos'}
+        </button>
 
         {/* Filtros */}
         <div className="myorders-filters">

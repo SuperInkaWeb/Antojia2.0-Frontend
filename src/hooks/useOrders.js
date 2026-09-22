@@ -17,6 +17,7 @@ export function useMyOrders(params = {}) {
     },
     enabled: isAuthenticated,
     refetchInterval: 30000, // refresca cada 30s para actualizar estados en tiempo real
+    staleTime: 0,
   })
 }
 
@@ -35,6 +36,7 @@ export function useOrderDetail(id) {
     },
     enabled: isAuthenticated && !!id,
     refetchInterval: query => ['DELIVERED', 'CANCELLED'].includes(query.state.data?.status) ? false : 30000,
+    staleTime: 0,
   })
 }
 

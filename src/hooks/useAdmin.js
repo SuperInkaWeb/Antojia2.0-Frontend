@@ -93,6 +93,20 @@ export function useMarketingSettlements() {
   return useAuthenticatedQuery('marketing-settlements', '/api/v1/admin-marketing/settlements', {}, { refetchInterval: 30000 })
 }
 
+export function useMarketingRewards() {
+  return useAuthenticatedQuery('marketing-rewards', '/api/v1/admin-marketing/rewards')
+}
+
+export function useMarketingRewardMutations() {
+  const { getAccessTokenSilently } = useAuth0(); const qc = useQueryClient()
+  const auth = async () => { const token = await getAccessTokenSilently({ authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE } }); setAuthToken(token) }
+  const invalidate = () => qc.invalidateQueries({ queryKey: ['marketing-rewards'] })
+  const create = useMutation({ mutationFn: async payload => { await auth(); return api.post('/api/v1/admin-marketing/rewards', payload) }, onSuccess: () => { toast.success('Recompensa creada'); invalidate() }, onError: err => toast.error(err?.response?.data?.message || 'No se pudo crear la recompensa') })
+  const toggle = useMutation({ mutationFn: async id => { await auth(); return api.patch(`/api/v1/admin-marketing/rewards/${id}/toggle`) }, onSuccess: () => { toast.success('Estado actualizado'); invalidate() }, onError: err => toast.error(err?.response?.data?.message || 'No se pudo actualizar') })
+  const remove = useMutation({ mutationFn: async id => { await auth(); return api.delete(`/api/v1/admin-marketing/rewards/${id}`) }, onSuccess: () => { toast.success('Recompensa eliminada'); invalidate() }, onError: err => toast.error(err?.response?.data?.message || 'No se pudo eliminar') })
+  return { create, toggle, remove }
+}
+
 export function useMarketingAdmins(period = 'month', date) {
   return useAuthenticatedQuery('marketing-admins', '/api/v1/admin/marketing-admins', { period, date })
 }
@@ -145,8 +159,8 @@ export function useFinanceAdminInviteMutations() {
   return { create: mutation('post', '/api/v1/admin/finance-admins/link', 'Enlace financiero creado'), refreshLink: mutation('post', '/api/v1/admin/finance-admins', 'Enlace financiero renovado'), approve: mutation('patch', '/api/v1/admin/finance-admins', 'Acceso financiero aprobado'), suspend: mutation('patch', '/api/v1/admin/finance-admins', 'Acceso financiero suspendido') }
 }
 
-export function useFinanceDashboard() {
-  return useAuthenticatedQuery('finance-dashboard', '/api/v1/admin-finance/dashboard', {}, { refetchInterval: 15000 })
+export function useFinanceDashboard(period = 'month') {
+  return useAuthenticatedQuery('finance-dashboard', '/api/v1/admin-finance/dashboard', { period }, { refetchInterval: 15000 })
 }
 
 export function useFinanceWithdrawalMutations() {
