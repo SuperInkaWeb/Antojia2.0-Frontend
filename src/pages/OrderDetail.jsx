@@ -17,6 +17,7 @@ export default function OrderDetail() {
   const api       = useApi()
   const { data: order, isLoading, isError, isFetching, refetch } = useOrderDetail(id)
   const [checkingPayment, setCheckingPayment] = useState(false)
+  const [changingDriver, setChangingDriver] = useState(false)
   const removePurchasedItems = useCartStore(state => state.removePurchasedItems)
 
   useEffect(() => {
@@ -53,6 +54,20 @@ export default function OrderDetail() {
       toast.error(err?.response?.data?.message || 'No se pudo verificar el pago')
     } finally {
       setCheckingPayment(false)
+    }
+  }
+
+  const handleChangeDriver = async () => {
+    if (!window.confirm('¿Quieres cambiar de repartidor? El repartidor actual dejará de tener este pedido y volverá a estar disponible para otros repartidores.')) return
+    setChangingDriver(true)
+    try {
+      await api.patch(`/api/v1/orders/${id}/change-driver`)
+      toast.success('El pedido volvió a estar disponible para otro repartidor')
+      await refetch()
+    } catch (err) {
+      toast.error(err?.response?.data?.message || 'No se pudo cambiar de repartidor')
+    } finally {
+      setChangingDriver(false)
     }
   }
 
@@ -224,12 +239,12 @@ export default function OrderDetail() {
         </div>
 
         {/* Repartidor asignado */}
-        {order.driver && (
-          <div className="odetail-card odetail-card--driver">
+         {order.driver && (
+           <div className="odetail-card odetail-card--driver">
             <h2 className="odetail-card-title">
               <Bike size={16} /> Tu repartidor
             </h2>
-            <div className="odetail-driver">
+             <div className="odetail-driver">
               <div className="odetail-driver-avatar">
                 {order.driver.user?.name?.charAt(0).toUpperCase()}
               </div>
@@ -238,10 +253,21 @@ export default function OrderDetail() {
                 {order.driver.user?.phone && (
                   <p className="odetail-driver-phone">📞 {order.driver.user.phone}</p>
                 )}
-              </div>
-            </div>
-          </div>
-        )}
+               </div>
+             </div>
+             {order.type === 'DELIVERY' && ['READY', 'ON_THE_WAY'].includes(order.status) && (
+               <button
+                 type="button"
+                 className="odetail-change-driver-btn"
+                 onClick={handleChangeDriver}
+                 disabled={changingDriver || isFetching}
+               >
+                 <RefreshCw size={15} className={changingDriver ? 'odetail-spin' : ''} />
+                 {changingDriver ? 'Cambiando repartidor…' : 'Cambiar repartidor'}
+               </button>
+             )}
+           </div>
+         )}
 
         {order.type === 'DELIVERY' && order.deliveryCode && !['DELIVERED', 'CANCELLED'].includes(order.status) && (
           <div className="odetail-card odetail-delivery-code">

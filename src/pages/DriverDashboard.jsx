@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth0 } from '@auth0/auth0-react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
@@ -32,6 +32,18 @@ export default function DriverDashboard() {
   // La bolsa de pedidos es global: todos los repartidores ven todos los READY
   // sin repartidor, sin limitarla al distrito de su perfil.
   const { data: orders = [], isLoading, refetch, isFetching: ordersFetching } = useQuery({ queryKey: availableOrdersKey, queryFn: async () => { await auth(); return (await api.get('/api/v1/drivers/orders/available')).data.data }, enabled: isAuthenticated && Boolean(driverKey) && !active.length, refetchInterval: active.length ? false : 30000 })
+  const previousActiveRef = useRef([])
+  useEffect(() => {
+    if (active.length) {
+      previousActiveRef.current = active
+      return
+    }
+    const releasedOrder = orders.find(order => previousActiveRef.current.some(previous => previous.id === order.id))
+    if (releasedOrder) {
+      toast(`El pedido #${releasedOrder.orderNumber?.slice(-8)} fue liberado porque el cliente solicitó cambiar de repartidor.`, { icon: '⚠️' })
+      previousActiveRef.current = previousActiveRef.current.filter(previous => previous.id !== releasedOrder.id)
+    }
+  }, [active, orders])
   const filteredOrders = district === 'ALL'
     ? orders
     : orders.filter(order => order.restaurant?.district?.toLocaleLowerCase() === district.toLocaleLowerCase())

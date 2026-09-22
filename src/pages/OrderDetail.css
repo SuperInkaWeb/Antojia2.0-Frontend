@@ -134,6 +134,23 @@
 .odetail-driver { display: flex; align-items: center; gap: 14px; }
 .odetail-driver-avatar { background: linear-gradient(145deg, #4679e8, #2856bc); box-shadow: 0 7px 18px rgba(37, 99, 235, .2); }
 .odetail-driver-phone { margin: 4px 0 0; color: #68758a; font-size: .82rem; }
+.odetail-change-driver-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 16px;
+  padding: 9px 13px;
+  border: 1px solid #2563eb;
+  border-radius: 10px;
+  background: #fff;
+  color: #1d4ed8;
+  font: inherit;
+  font-size: .8rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+.odetail-change-driver-btn:hover:not(:disabled) { background: #eff6ff; }
+.odetail-change-driver-btn:disabled { opacity: .6; cursor: wait; }
 .odetail-items { display: flex; flex-direction: column; gap: 2px; }
 
 .odetail-item {
