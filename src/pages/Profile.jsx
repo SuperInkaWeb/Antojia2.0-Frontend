@@ -38,7 +38,7 @@ const DRIVER_STATUS_LABEL = {
 }
 
 // ─── Campo editable inline ─────────────────────────────────────────
-function EditableField({ label, value, onSave, saving, type = 'text', placeholder }) {
+function EditableField({ label, value, onSave, saving, type = 'text', placeholder, numeric = false }) {
   const [editing, setEditing] = useState(false)
   const [draft,   setDraft]   = useState(value || '')
   useEffect(() => { setDraft(value || '') }, [value])
@@ -53,9 +53,9 @@ function EditableField({ label, value, onSave, saving, type = 'text', placeholde
       <label className="pf-field-label">{label}</label>
       {editing ? (
         <div className="pf-field-edit">
-          <input className="pf-input" type={type} value={draft} autoFocus
+          <input className="pf-input" type={type} inputMode={numeric ? 'numeric' : undefined} pattern={numeric ? '[0-9]*' : undefined} value={draft} autoFocus
             placeholder={placeholder}
-            onChange={e => setDraft(e.target.value)}
+            onChange={e => setDraft(numeric ? e.target.value.replace(/\D/g, '') : e.target.value)}
             onKeyDown={e => {
               if (e.key === 'Enter') handleSave()
               if (e.key === 'Escape') { setEditing(false); setDraft(value || '') }
@@ -205,7 +205,7 @@ function SectionUser({ user }) {
       <EditableField label="Nombre" value={user.name} saving={isPending}
         placeholder="Tu nombre completo" onSave={name => updateProfile({ name })}/>
       <EditableField label="Teléfono" value={user.phone} saving={isPending}
-        placeholder="9XXXXXXXX" type="tel" onSave={phone => updateProfile({ phone })}/>
+        placeholder="987654321" type="tel" numeric onSave={phone => updateProfile({ phone })}/>
       <div className="pf-field">
         <label className="pf-field-label">Correo</label>
         <div className="pf-field-val pf-field-val--readonly"><span>{user.email}</span></div>
@@ -324,7 +324,7 @@ export function SectionRestaurant({ restaurant }) {
         <RestaurantLocationPicker value={{ latitude: restaurant.latitude, longitude: restaurant.longitude }} onChange={coords => update(coords)}/>
       </div>
       <EditableField label="Teléfono" value={restaurant.phone} saving={isPending}
-        placeholder="01 234 5678" type="tel" onSave={phone => update({ phone })}/>
+        placeholder="012345678" type="tel" numeric onSave={phone => update({ phone })}/>
       <BankAccountField value={restaurant.bankAccountNumberMasked} saving={isPending}
         onSave={accountNumber => update({ accountNumber })}/>
       <EditableField label="Costo de delivery (S/)" value={restaurant.deliveryFee?.toString()} saving={isPending}

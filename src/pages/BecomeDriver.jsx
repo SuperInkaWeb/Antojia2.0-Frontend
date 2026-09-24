@@ -38,7 +38,7 @@ export default function BecomeDriver() {
   const requiresLicense = ['MOTORCYCLE', 'CAR'].includes(form.vehicleType)
 
   const handleSubmit = async () => {
-    if (!form.dni.trim()) return toast.error('El DNI es requerido')
+    if (!/^\d{8}$/.test(form.dni)) return toast.error('El DNI debe tener exactamente 8 dígitos')
     if (!/^\d{8,20}$/.test(form.accountNumber.replace(/\s/g, ''))) return toast.error('El número de cuenta es requerido y debe tener entre 8 y 20 dígitos')
     if (requiresLicense && !form.licenseNumber.trim())   return toast.error('El número de carné de conducir es requerido')
     if (requiresLicense && !form.licensePhotoUrl.trim()) return toast.error('La URL de la foto del carné es requerida')
@@ -118,7 +118,7 @@ export default function BecomeDriver() {
 
           <div className="bdriver-field">
             <label>DNI *</label>
-            <input className="bdriver-input" placeholder="12345678" maxLength={8} value={form.dni} onChange={set('dni')} />
+            <input className="bdriver-input" type="text" inputMode="numeric" pattern="[0-9]*" placeholder="12345678" maxLength={8} value={form.dni} onChange={e => setForm(f => ({ ...f, dni: e.target.value.replace(/\D/g, '').slice(0, 8) }))} />
           </div>
 
           <div className="bdriver-field">

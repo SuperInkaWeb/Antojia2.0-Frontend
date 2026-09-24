@@ -257,7 +257,11 @@ function Deposit({ restaurantId }) {
   const withdrawal = useRequestRestaurantWithdrawal(restaurantId)
   const [isTest, setIsTest] = useState(true)
   const [form, setForm] = useState({ amount: '', bankName: '', accountHolder: '', accountNumber: '', cci: '', accountType: 'CUENTA' })
-  const update = event => setForm(current => ({ ...current, [event.target.name]: event.target.value }))
+  const update = event => {
+    const { name, value } = event.target
+    const nextValue = ['accountNumber', 'cci'].includes(name) ? value.replace(/\D/g, '') : value
+    setForm(current => ({ ...current, [name]: nextValue }))
+  }
   const submit = event => {
     event.preventDefault()
     withdrawal.mutate({ ...form, amount: Number(form.amount), isTest })
@@ -276,8 +280,8 @@ function Deposit({ restaurantId }) {
         <label>Banco<input name="bankName" required maxLength="80" value={form.bankName} onChange={update} placeholder="Nombre del banco"/></label>
         <label>Titular de la cuenta<input name="accountHolder" required maxLength="120" value={form.accountHolder} onChange={update} placeholder="Nombre completo"/></label>
         <label>Tipo de cuenta<select name="accountType" value={form.accountType} onChange={update}><option value="CUENTA">Cuenta bancaria</option><option value="AHORROS">Ahorros</option><option value="CORRIENTE">Corriente</option></select></label>
-        <label>Número de cuenta<input name="accountNumber" inputMode="numeric" minLength="8" maxLength="20" value={form.accountNumber} onChange={update} placeholder="8 a 20 dígitos"/></label>
-        <label>CCI (opcional)<input name="cci" inputMode="numeric" minLength="20" maxLength="20" value={form.cci} onChange={update} placeholder="20 dígitos"/></label>
+        <label>Número de cuenta<input name="accountNumber" type="text" inputMode="numeric" pattern="[0-9]*" minLength="8" maxLength="20" value={form.accountNumber} onChange={update} placeholder="8 a 20 dígitos"/></label>
+        <label>CCI (opcional)<input name="cci" type="text" inputMode="numeric" pattern="[0-9]*" minLength="20" maxLength="20" value={form.cci} onChange={update} placeholder="20 dígitos"/></label>
       </div>
       <button className="rp-primary" disabled={withdrawal.isPending || (!isTest && (!wallet?.balance || Number(form.amount) > Number(wallet?.balance || 0)))}>{withdrawal.isPending ? 'Enviando solicitud…' : isTest ? 'Enviar solicitud de prueba' : 'Solicitar retiro real'}</button>
     </form>
@@ -319,7 +323,7 @@ export default function RestaurantPortal() {
       <button className="rp-home" onClick={() => navigate('/')}><House size={17}/> Volver a la tienda</button>
     </aside>
     <main className="rp-main"><header className="rp-topbar"><div><small>Panel del restaurante</small><strong>{SECTIONS.find(item => item.id === section)?.label}</strong></div></header>
-      <div className="rp-content">{ordersLoading && section !== 'menu' && section !== 'promociones' ? <div className="rp-loading">Preparando tus datos…</div> : <>
+      <div className="rp-content">{ordersLoading && section === 'dashboard' ? <div className="rp-loading">Preparando tus datos…</div> : <>
         {section === 'dashboard' && <Overview orders={orders} restaurant={restaurant}/>} {section === 'clientes' && <Customers restaurantId={restaurant.id} onSelect={setSelectedCustomer}/>} {section === 'menu' && <SectionMenu restaurant={restaurant}/>} {section === 'preparacion' && <MenuPreparation orders={orders}/>} {section === 'ventas' && <Sales orders={orders}/>} {section === 'promociones' && <Promotions restaurantId={restaurant.id} orders={orders}/>} {section === 'facturacion' && <Billing orders={orders} restaurant={restaurant}/>} {section === 'deposito' && <Deposit restaurantId={restaurant.id}/>} {section === 'configuracion' && <SectionRestaurant restaurant={restaurant}/>} {section === 'reportes' && <Reports/>} </>}
         {selectedCustomer && <CustomerDetail detail={customerDetail} isLoading={customerDetailLoading} onClose={() => setSelectedCustomer(null)}/>}
       </div>

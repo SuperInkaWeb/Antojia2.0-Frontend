@@ -240,9 +240,11 @@ export default function RestaurantRegisterForm({ onSubmit, onBack, loading }) {
         <input
           className="rrform-input"
           type="tel"
-          placeholder="01 234 5678"
+          inputMode="numeric"
+          pattern="[0-9]*"
+          placeholder="012345678"
           value={form.phone}
-          onChange={set('phone')}
+          onChange={e => setForm(f => ({ ...f, phone: e.target.value.replace(/\D/g, '') }))}
         />
       </div>
 

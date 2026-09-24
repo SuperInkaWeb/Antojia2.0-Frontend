@@ -51,9 +51,11 @@ export default function DeliveryForm({
         <input
           className="chkform-input"
           type="tel"
-          placeholder="987 654 321"
+          inputMode="numeric"
+          pattern="[0-9]*"
+          placeholder="987654321"
           value={phone}
-          onChange={e => onPhoneChange(e.target.value)}
+          onChange={e => onPhoneChange(e.target.value.replace(/\D/g, ''))}
         />
       </div>
 

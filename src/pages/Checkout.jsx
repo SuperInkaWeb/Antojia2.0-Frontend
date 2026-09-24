@@ -76,7 +76,7 @@ export default function Checkout() {
     if (orderType === 'DELIVERY') {
       if (!deliveryAddress.trim()) return toast.error('Ingresa la dirección de entrega')
       if (!deliveryDistrict.trim()) return toast.error('Ingresa el distrito')
-      if (!deliveryPhone.trim()) return toast.error('Ingresa un teléfono de contacto')
+      if (!/^\d+$/.test(deliveryPhone)) return toast.error('El teléfono de contacto solo debe contener números')
       if (deliveryCoords?.latitude == null || deliveryCoords?.longitude == null) return toast.error('Marca en el mapa la ubicación exacta donde recibirás el pedido')
     }
 
