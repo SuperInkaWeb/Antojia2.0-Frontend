@@ -181,8 +181,13 @@ function ProductModal({ restaurantId, product, onClose }) {
             <input className="pf-input" type="number" min="0" step="0.5" value={form.price} onChange={set('price')} placeholder="0.00"/>
           </div>
           <div className="pf-field">
-            <label className="pf-field-label">URL de imagen</label>
-            <input className="pf-input" value={form.imageUrl} onChange={set('imageUrl')} placeholder="https://..."/>
+            <label className="pf-field-label">Foto del plato <span className="pf-field-help">(opcional)</span></label>
+            <ImageUploader
+              value={form.imageUrl}
+              onUploaded={imageUrl => setForm(current => ({ ...current, imageUrl }))}
+              scope="restaurants/dishes"
+              label="Subir foto del plato"
+            />
           </div>
         </div>
         <div className="pf-modal-foot">
