@@ -1,6 +1,8 @@
 # 🍽️ Antojia — Frontend
 
-Interfaz de usuario del marketplace gastronómico **Antojia**, construida con React 19, Vite y TanStack Query.
+Interfaz SPA del marketplace gastronómico **Antojia**, construida con React 19,
+Vite y TanStack Query. Consume el backend desplegado en Render y se publica en
+Vercel.
 
 ---
 
@@ -27,7 +29,7 @@ frontend/
 ├── public/
 │   ├── favicon.jpeg           # Ícono de la app (logo A)
 │   ├── logo.jpeg              # Logo completo Antojia
-│   └── _redirects             # Redirects de Netlify para SPA routing
+│   └── _redirects             # Compatibilidad con despliegues alternativos
 ├── src/
 │   ├── App.jsx                # Rutas de la aplicación
 │   ├── config/api.js          # Instancia Axios + interceptores
@@ -38,7 +40,9 @@ frontend/
 │   │   ├── useOrders.js
 │   │   ├── useRestaurantOrders.js
 │   │   ├── useProfile.js
-│   │   └── useAdmin.js
+│   │   ├── useAdmin.js         # Operaciones de administración
+│   │   ├── useReports.js       # Reportes de usuarios y soporte técnico
+│   │   └── useOnboarding.js    # Flujo de incorporación por rol
 │   ├── pages/
 │   │   ├── Home.jsx
 │   │   ├── RestaurantDetail.jsx
@@ -59,7 +63,10 @@ frontend/
 │       ├── marketplace/RestaurantCard.jsx
 │       ├── restaurant/RestaurantHeader.jsx
 │       ├── orders/OrderStatusBadge.jsx
-│       └── ui/LogoUploader.jsx
+│       ├── ui/LogoUploader.jsx
+│       ├── ui/ImageUploader.jsx
+│       ├── delivery/            # Seguimiento y prueba de entrega
+│       └── admin/                # Paneles admin, marketing, técnico y financiero
 └── index.html
 ```
 
@@ -68,10 +75,9 @@ frontend/
 ## 🚀 Instalación y desarrollo
 
 ### 1. Requisitos previos
-- Node.js ≥ 18
-- Backend de Antojia corriendo en `localhost:4000`
+- Node.js ≥ 22
+- Backend de Antojia corriendo en `http://localhost:4000`
 - Cuenta en [Auth0](https://auth0.com)
-- Bucket `logos` en Supabase Storage
 
 ### 2. Instalar dependencias
 ```bash
@@ -80,21 +86,18 @@ npm install
 ```
 
 ### 3. Configurar variables de entorno
-```bash
-cp .env.example .env
-```
+Create a local `.env` file (it is ignored by Git):
 
 ```env
-VITE_AUTH0_DOMAIN=dev-xxxx.us.auth0.com
-VITE_AUTH0_CLIENT_ID=tu_client_id
-VITE_AUTH0_AUDIENCE=https://tu-api-identifier
-VITE_AUTH0_REDIRECT_URI=http://localhost:5173/callback
-
 VITE_API_URL=http://localhost:4000
-
-VITE_SUPABASE_URL=https://xxxxxxxxxxxx.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJ...
+VITE_AUTH0_CLIENT_ID=tu_client_id
+VITE_AUTH0_DOMAIN=dev-xxxx.us.auth0.com
+VITE_AUTH0_AUDIENCE=https://tu-api-identifier
 ```
+
+Vite incorpora las variables `VITE_*` en el bundle del navegador. No coloques
+secretos en ellas. `VITE_API_URL` debe apuntar a la URL base del backend, sin
+añadir `/api/v1`, porque las llamadas agregan ese prefijo según el módulo.
 
 ### 4. Correr en desarrollo
 ```bash
@@ -118,9 +121,21 @@ La app inicia en `http://localhost:5173`
 | `/onboarding` | Onboarding | Autenticado |
 | `/become-driver` | BecomeDriver | Autenticado |
 | `/driver` | DriverDashboard | DELIVERY |
-| `/restaurant-dashboard` | RestaurantDashboard | RESTAURANT_OWNER |
+| `/restaurant-dashboard` | RestaurantPortal | RESTAURANT_OWNER |
 | `/register-restaurant` | RegisterRestaurant | Autenticado |
 | `/admin` | Dashboard | ADMIN |
+| `/adminMark` | MarketingDashboard | MARKETING_ADMIN |
+| `/adminTec` | TechDashboard | TECH_ADMIN |
+| `/adminFin` | FinanceDashboard | FINANCE_ADMIN |
+| `/reports` | Reports | Autenticado |
+| `/restaurant-orders` | RestaurantDashboard | RESTAURANT_OWNER |
+| `/admin/register` | RegisterAdmin | Invitación |
+| `/adminMark/register` | RegisterMarketingAdmin | Invitación |
+| `/adminTec/register` | RegisterTechAdmin | Invitación |
+| `/adminFin/register` | RegisterFinanceAdmin | Invitación |
+| `/payment/success` | PaymentResult | Público |
+| `/payment/pending` | PaymentResult | Público |
+| `/payment/failure` | PaymentResult | Público |
 | `/callback` | Callback | — |
 
 ---
@@ -136,37 +151,35 @@ npm run lint     # Lint con ESLint
 
 ---
 
-## 🚢 Despliegue en producción (Netlify)
+## 🚢 Despliegue en producción (Vercel)
 
-### Archivo `public/_redirects` (obligatorio para SPA)
+El frontend se despliega como una aplicación Vite en Vercel. El archivo
+`vercel.json` contiene el rewrite necesario para que las rutas de React Router
+funcionen al recargar directamente una URL.
 
-```
-/*    /index.html   200
-```
+### Variables de entorno en Vercel
 
-Sin este archivo, Netlify devuelve 404 en rutas como `/callback`, `/orders`, etc.
-
-### Variables de entorno en Netlify
-
-Site settings → Environment variables:
+Project Settings → Environment Variables:
 
 ```env
-VITE_AUTH0_DOMAIN=dev-xxxx.us.auth0.com
-VITE_AUTH0_CLIENT_ID=tu_client_id
-VITE_AUTH0_AUDIENCE=https://tu-api-identifier
-VITE_AUTH0_REDIRECT_URI=https://tu-app.netlify.app/callback
-VITE_API_URL=https://tu-backend.onrender.com
-VITE_SUPABASE_URL=https://xxxxxxxxxxxx.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJ...
+VITE_API_URL=https://foodinka-backend-1.onrender.com
+VITE_AUTH0_CLIENT_ID=tu_client_id_de_auth0
+VITE_AUTH0_DOMAIN=dev-i25syim5mvrwjpag.us.auth0.com
+VITE_AUTH0_AUDIENCE=https://api.antojia.com
 ```
 
-### Configuración de build en Netlify
+Usa estas cuatro variables en los entornos de Preview y Production si ambos
+deben consumir el backend de Render. Después de modificar una variable, crea
+un nuevo despliegue para que Vite regenere el bundle.
+
+### Configuración de build en Vercel
 
 | Campo | Valor |
 |---|---|
 | Build command | `npm run build` |
-| Publish directory | `dist` |
-| Node version | `18` |
+| Output directory | `dist` |
+| Install command | `npm install` o el detectado por Vercel |
+| Node version | `22` |
 
 ### Auth0 — URLs permitidas
 
@@ -174,16 +187,16 @@ Dashboard → Applications → tu app → Settings:
 
 ```
 Allowed Callback URLs:
-http://localhost:5173/callback, https://tu-app.netlify.app/callback
+http://localhost:5173/callback, https://tu-dominio-vercel.vercel.app/callback
 
 Allowed Logout URLs:
-http://localhost:5173, https://tu-app.netlify.app
+http://localhost:5173, https://tu-dominio-vercel.vercel.app
 
 Allowed Web Origins:
-http://localhost:5173, https://tu-app.netlify.app
+http://localhost:5173, https://tu-dominio-vercel.vercel.app
 ```
 
-> ⚠️ Auth0 requiere HTTPS en producción. Si el sitio se abre por HTTP, lanza el error "auth0-spa-js must run on a secure origin". Netlify habilita HTTPS automáticamente.
+> ⚠️ Auth0 requiere HTTPS en producción. Vercel habilita HTTPS automáticamente.
 
 > ⚠️ Si usas login con Google, debes configurar tus propias credenciales OAuth en Google Cloud Console y pegarlas en Auth0 → Authentication → Social → Google. Las Dev Keys de Auth0 no funcionan en producción.
 
