@@ -69,19 +69,12 @@ export default function OrderSummary({
       </div>
 
       {!paymentConfig ? <p className="osummary-test-note">Verificando medios de pago…</p> : <>
-        {paymentConfig.productionEnabled && <button
-          className="osummary-btn osummary-btn--mercadopago"
-          onClick={() => onConfirm('MERCADOPAGO')}
+        {(paymentConfig.productionEnabled || paymentConfig.testEnabled) && <button
+          className={`osummary-btn ${paymentConfig.productionEnabled ? 'osummary-btn--mercadopago' : 'osummary-btn--test'}`}
+          onClick={() => onConfirm(paymentConfig.productionEnabled ? 'MERCADOPAGO' : 'MERCADOPAGO_TEST')}
           disabled={loading}
         >
           {loading ? <><Loader2 size={18} className="osummary-spinner" /> Procesando...</> : '💳 Pagar con Mercado Pago'}
-        </button>}
-        {paymentConfig.testEnabled && <button
-          className="osummary-btn osummary-btn--test"
-          onClick={() => onConfirm('MERCADOPAGO_TEST')}
-          disabled={loading}
-        >
-          {loading ? <><Loader2 size={18} className="osummary-spinner" /> Procesando...</> : '🧪 Probar pago Mercado Pago'}
         </button>}
         {paymentConfig.productionEnabled && <p className="osummary-test-note">El pago real cobrará el monto mostrado a través de Mercado Pago.</p>}
         {!paymentConfig.productionEnabled && paymentConfig.testEnabled && <p className="osummary-test-note">Solo está habilitado el modo de prueba; no se realizará ningún cobro real.</p>}
