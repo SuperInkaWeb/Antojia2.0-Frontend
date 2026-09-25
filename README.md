@@ -162,10 +162,10 @@ funcionen al recargar directamente una URL.
 Project Settings → Environment Variables:
 
 ```env
-VITE_API_URL=https://foodinka-backend-1.onrender.com
+VITE_API_URL=https://xxxxxxxxx.onrender.com
 VITE_AUTH0_CLIENT_ID=tu_client_id_de_auth0
-VITE_AUTH0_DOMAIN=dev-i25syim5mvrwjpag.us.auth0.com
-VITE_AUTH0_AUDIENCE=https://api.antojia.com
+VITE_AUTH0_DOMAIN=dev-xxxxxxxxx.us.auth0.com
+VITE_AUTH0_AUDIENCE=https://xxxxxxxxx
 ```
 
 Usa estas cuatro variables en los entornos de Preview y Production si ambos
