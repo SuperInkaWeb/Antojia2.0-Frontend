@@ -29,6 +29,7 @@ export default function RegisterAdmin() {
       try {
         const token = await getAccessTokenSilently({
           authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE },
+          scope: 'openid profile email',
         })
         setAuthToken(token)
         await api.post('/api/v1/auth/register-admin')
