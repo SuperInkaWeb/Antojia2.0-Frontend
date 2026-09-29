@@ -16,8 +16,8 @@ export default function RegisterAdmin() {
   const [error, setError] = useState('')
   const [registering, setRegistering] = useState(false)
   const [attempted, setAttempted] = useState(false)
-  const login = () => loginWithRedirect({
-    authorizationParams: { prompt: 'login' },
+  const login = (signup = false) => loginWithRedirect({
+    authorizationParams: signup ? { screen_hint: 'signup' } : { prompt: 'login' },
     appState: { returnTo: window.location.pathname },
   })
 
@@ -28,8 +28,10 @@ export default function RegisterAdmin() {
       setRegistering(true)
       try {
         const token = await getAccessTokenSilently({
-          authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE },
-          scope: 'openid profile email',
+          authorizationParams: {
+            audience: import.meta.env.VITE_AUTH0_AUDIENCE,
+            scope: 'openid profile email',
+          },
         })
         setAuthToken(token)
         await api.post('/api/v1/auth/register-admin')
@@ -49,8 +51,8 @@ export default function RegisterAdmin() {
       <ShieldCheck size={48} />
       <h1>Acceso de administrador</h1>
       {isLoading || registering ? <p><Loader2 size={18} className="admin-register-spin"/> Preparando tu acceso…</p>
-        : !isAuthenticated ? <><p>Inicia sesión o crea tu cuenta para activar el panel de administrador.</p><button onClick={login}>Continuar</button></>
-        : error ? <><p className="admin-register-error">{error}</p><button onClick={login}>Iniciar sesión como administrador</button></>
+        : !isAuthenticated ? <><p>Usa el correo configurado en ADMIN_EMAIL para crear o iniciar tu cuenta.</p><button onClick={() => login(true)}>Crear cuenta de administrador</button><button onClick={() => login(false)}>Ya tengo una cuenta</button></>
+        : error ? <><p className="admin-register-error">{error}</p><button onClick={() => login(false)}>Iniciar sesión como administrador</button></>
         : null}
     </main>
   </div>
