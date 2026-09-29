@@ -12,7 +12,7 @@ import './Home.css'
 import './HomeMarketplace.css'
 
 const PROMOS = [
-  { eyebrow: 'Selección Antójia', title: 'Sabores para cortar la rutina', text: 'Descubre restaurantes con delivery y arma un almuerzo diferente.', image: 'https://images.unsplash.com/photo-1547592180-85f173990554?w=900&q=85', action: 'delivery' },
+  { eyebrow: 'Selección Antojia', title: 'Sabores para cortar la rutina', text: 'Descubre restaurantes con delivery y arma un almuerzo diferente.', image: 'https://images.unsplash.com/photo-1547592180-85f173990554?w=900&q=85', action: 'delivery' },
   { eyebrow: 'Plan de hoy', title: 'Una mesa, una buena conversación', text: 'Explora locales que aceptan reservas.', image: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=700&q=85', action: 'reservation' },
 ]
 

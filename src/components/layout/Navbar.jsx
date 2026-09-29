@@ -145,7 +145,7 @@ export default function Navbar({ cartCount, searchValue = '', onSearchChange, di
           <div className="navbar-drawer-head">
             <div>
               <small>{isAuthenticated ? 'Mi cuenta' : 'Menú'}</small>
-              <strong>{isAuthenticated ? (user?.name || 'Usuario') : 'Antójia'}</strong>
+              <strong>{isAuthenticated ? (user?.name || 'Usuario') : 'Antojia'}</strong>
               {isAuthenticated && <span>{user?.email}</span>}
             </div>
             <button onClick={() => setMenuOpen(false)} aria-label="Cerrar"><X size={19}/></button>
