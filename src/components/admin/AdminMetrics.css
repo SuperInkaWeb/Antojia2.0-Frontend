@@ -82,14 +82,14 @@
   color: #111827;
   margin: 0 0 20px;
 }
-.revenue-donut-layout { display:flex; align-items:center; justify-content:center; gap:42px; min-height:245px; }
+.revenue-donut-layout { display:flex; align-items:center; justify-content:center; gap:28px; min-height:245px; }
 .revenue-donut-wrap { position:relative; width:220px; height:220px; flex:0 0 220px; }
 .revenue-donut { width:100%; height:100%; overflow:visible; }
 .revenue-donut-segment { cursor:pointer; outline:none; transition:transform .2s ease, filter .2s ease, opacity .2s ease; stroke:#fff; stroke-width:1.5; }
 .revenue-donut-segment:hover,.revenue-donut-segment:focus { opacity:.92; }
-.revenue-donut-center { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; pointer-events:none; }
-.revenue-donut-center strong { color:#111827; font-size:1.15rem; }
-.revenue-donut-center span { margin-top:4px; color:#9ca3af; font-size:.7rem; }
+.revenue-pie-summary { display:flex; min-width:145px; flex-direction:column; gap:5px; }
+.revenue-pie-summary strong { color:#111827; font-size:1.15rem; }
+.revenue-pie-summary span { color:#9ca3af; font-size:.7rem; }
 .revenue-donut-legend { display:grid; gap:8px; min-width:230px; }
 .revenue-legend-item { display:grid; grid-template-columns:11px 1fr auto; align-items:center; gap:9px; width:100%; border:0; border-radius:9px; padding:9px 10px; background:#f8fafc; color:#6b7280; text-align:left; cursor:pointer; transition:transform .2s ease, box-shadow .2s ease, background .2s ease; }
 .revenue-legend-item:hover,.revenue-legend-item--active { background:#fff7ed; box-shadow:0 7px 16px rgba(15,23,42,.1); transform:translateX(4px); }
@@ -104,7 +104,7 @@
   color: #d1d5db;
   font-size: 0.875rem;
 }
-@media (max-width:700px) { .revenue-donut-layout { flex-direction:column; gap:18px; } .revenue-donut-legend { width:100%; min-width:0; } }
+@media (max-width:700px) { .revenue-donut-layout { flex-direction:column; gap:18px; } .revenue-pie-summary { min-width:0; text-align:center; } .revenue-donut-legend { width:100%; min-width:0; } }
 
 /* Bottom cards */
 .metrics-bottom {

@@ -32,17 +32,15 @@ function monthLabel(month) {
   return new Date(`${month}-01T00:00:00`).toLocaleDateString('es-PE', { month: 'short' }).replace('.', '')
 }
 
-function sectorPath(startAngle, endAngle, outerRadius = 92, innerRadius = 56) {
+function pieSectorPath(startAngle, endAngle, radius = 92) {
   const point = (angle, radius) => {
     const radians = (angle - 90) * Math.PI / 180
     return { x: 110 + radius * Math.cos(radians), y: 110 + radius * Math.sin(radians) }
   }
-  const outerStart = point(startAngle, outerRadius)
-  const outerEnd = point(endAngle, outerRadius)
-  const innerEnd = point(endAngle, innerRadius)
-  const innerStart = point(startAngle, innerRadius)
+  const outerStart = point(startAngle, radius)
+  const outerEnd = point(endAngle, radius)
   const largeArc = endAngle - startAngle > 180 ? 1 : 0
-  return `M ${outerStart.x} ${outerStart.y} A ${outerRadius} ${outerRadius} 0 ${largeArc} 1 ${outerEnd.x} ${outerEnd.y} L ${innerEnd.x} ${innerEnd.y} A ${innerRadius} ${innerRadius} 0 ${largeArc} 0 ${innerStart.x} ${innerStart.y} Z`
+  return `M 110 110 L ${outerStart.x} ${outerStart.y} A ${radius} ${radius} 0 ${largeArc} 1 ${outerEnd.x} ${outerEnd.y} Z`
 }
 
 function RevenueDonutChart({ data }) {
@@ -63,24 +61,26 @@ function RevenueDonutChart({ data }) {
             const middle = (start + end) / 2
             const radians = (middle - 90) * Math.PI / 180
             const offset = active === index ? { x: Math.cos(radians) * 6, y: Math.sin(radians) * 6 } : { x: 0, y: 0 }
-            return <path
-              key={item.month}
-              className="revenue-donut-segment"
-              d={sectorPath(start, end)}
-              fill={colors[index % colors.length]}
-              transform={`translate(${offset.x} ${offset.y})`}
-              style={{ filter: active === index ? 'drop-shadow(0 7px 6px rgba(15, 23, 42, .25))' : 'none' }}
-              onMouseEnter={() => setActive(index)}
-              onMouseLeave={() => setActive(null)}
-              onFocus={() => setActive(index)}
-              onBlur={() => setActive(null)}
-              tabIndex="0"
-              aria-label={`${monthLabel(item.month)}: ${formatMoney(item.revenue)}`}
-            />
+            const commonProps = {
+              key: item.month,
+              className: 'revenue-donut-segment',
+              fill: colors[index % colors.length],
+              transform: `translate(${offset.x} ${offset.y})`,
+              style: { filter: active === index ? 'drop-shadow(0 7px 6px rgba(15, 23, 42, .25))' : 'none' },
+              onMouseEnter: () => setActive(index),
+              onMouseLeave: () => setActive(null),
+              onFocus: () => setActive(index),
+              onBlur: () => setActive(null),
+              tabIndex: '0',
+              'aria-label': `${monthLabel(item.month)}: ${formatMoney(item.revenue)}`,
+            }
+            return span >= 359.99
+              ? <circle {...commonProps} cx="110" cy="110" r="92" />
+              : <path {...commonProps} d={pieSectorPath(start, end)} />
           })}
         </svg>
-        <div className="revenue-donut-center"><strong>{formatMoney(total)}</strong><span>Total acumulado</span></div>
       </div>
+      <div className="revenue-pie-summary"><strong>{formatMoney(total)}</strong><span>Total acumulado</span></div>
       <div className="revenue-donut-legend">
         {data.map((item, index) => <button
           key={item.month}
