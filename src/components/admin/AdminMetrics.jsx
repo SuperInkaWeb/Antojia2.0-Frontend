@@ -33,7 +33,7 @@ function SimpleBarChart({ data }) {
     <div className="chart">
       {data.map((d, i) => (
         <div key={i} className="chart-col">
-          <span className="chart-val">S/{(d.revenue / 1000).toFixed(1)}k</span>
+          <span className="chart-val">{d.revenue >= 1000 ? `S/${(d.revenue / 1000).toFixed(1)}k` : `S/${Number(d.revenue || 0).toFixed(2)}`}</span>
           <div className="chart-bar-wrap">
             <div
               className="chart-bar"
@@ -107,6 +107,13 @@ export default function AdminMetrics() {
           color="#16a34a"
         />
         <StatCard
+          icon={DollarSign}
+          label="Ganancia admin total"
+          value={`S/ ${Number(metrics.revenue.total || 0).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+          sub={`Real: S/ ${Number(metrics.revenue.realTotal || 0).toFixed(2)} · Prueba: S/ ${Number(metrics.revenue.testTotal || 0).toFixed(2)}`}
+          color="#0f766e"
+        />
+        <StatCard
           icon={Clock}
           label="Ventas de prueba (no cobradas)"
           value={`S/ ${Number(metrics.revenue.testSalesThisMonth || 0).toLocaleString()}`}
@@ -117,7 +124,7 @@ export default function AdminMetrics() {
 
       {/* Gráfico de ingresos */}
       <div className="metrics-chart-card">
-        <h2 className="metrics-chart-title">Ganancia del admin por mes · últimos 6 meses</h2>
+        <h2 className="metrics-chart-title">Ganancia del admin por mes · últimos 6 meses (real + prueba)</h2>
         <SimpleBarChart data={chart} />
       </div>
 
