@@ -1,4 +1,4 @@
-import { createElement } from 'react'
+import { createElement, useState } from 'react'
 import { Users, Store, ShoppingBag, DollarSign, TrendingUp, TrendingDown, Clock } from 'lucide-react'
 import { useAdminMutations, useMetrics, useRevenueChart } from '../../hooks/useAdmin.js'
 import './AdminMetrics.css'
@@ -24,25 +24,73 @@ function StatCard({ icon, label, value, sub, trend, color }) {
   )
 }
 
-function SimpleBarChart({ data }) {
+function formatMoney(value) {
+  return `S/ ${Number(value || 0).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+}
+
+function monthLabel(month) {
+  return new Date(`${month}-01T00:00:00`).toLocaleDateString('es-PE', { month: 'short' }).replace('.', '')
+}
+
+function sectorPath(startAngle, endAngle, outerRadius = 92, innerRadius = 56) {
+  const point = (angle, radius) => {
+    const radians = (angle - 90) * Math.PI / 180
+    return { x: 110 + radius * Math.cos(radians), y: 110 + radius * Math.sin(radians) }
+  }
+  const outerStart = point(startAngle, outerRadius)
+  const outerEnd = point(endAngle, outerRadius)
+  const innerEnd = point(endAngle, innerRadius)
+  const innerStart = point(startAngle, innerRadius)
+  const largeArc = endAngle - startAngle > 180 ? 1 : 0
+  return `M ${outerStart.x} ${outerStart.y} A ${outerRadius} ${outerRadius} 0 ${largeArc} 1 ${outerEnd.x} ${outerEnd.y} L ${innerEnd.x} ${innerEnd.y} A ${innerRadius} ${innerRadius} 0 ${largeArc} 0 ${innerStart.x} ${innerStart.y} Z`
+}
+
+function RevenueDonutChart({ data }) {
+  const [active, setActive] = useState(null)
   if (!data || data.length === 0) return (
     <div className="chart-empty">Sin datos de ingresos aún</div>
   )
-  const max = Math.max(...data.map(d => d.revenue), 1)
+  const total = data.reduce((sum, item) => sum + Number(item.revenue || 0), 0)
+  const colors = ['#ea580c', '#f97316', '#fb923c', '#f59e0b', '#14b8a6', '#6366f1']
   return (
-    <div className="chart">
-      {data.map((d, i) => (
-        <div key={i} className="chart-col">
-          <span className="chart-val">{d.revenue >= 1000 ? `S/${(d.revenue / 1000).toFixed(1)}k` : `S/${Number(d.revenue || 0).toFixed(2)}`}</span>
-          <div className="chart-bar-wrap">
-            <div
-              className="chart-bar"
-              style={{ height: `${(d.revenue / max) * 100}%` }}
+    <div className="revenue-donut-layout">
+      <div className="revenue-donut-wrap">
+        <svg className="revenue-donut" viewBox="0 0 220 220" role="img" aria-label="Ganancia del administrador por mes">
+          {data.map((item, index) => {
+            const span = Number(item.revenue || 0) / total * 360
+            const start = data.slice(0, index).reduce((sum, previous) => sum + Number(previous.revenue || 0), 0) / total * 360
+            const end = start + span
+            const middle = (start + end) / 2
+            const radians = (middle - 90) * Math.PI / 180
+            const offset = active === index ? { x: Math.cos(radians) * 6, y: Math.sin(radians) * 6 } : { x: 0, y: 0 }
+            return <path
+              key={item.month}
+              className="revenue-donut-segment"
+              d={sectorPath(start, end)}
+              fill={colors[index % colors.length]}
+              transform={`translate(${offset.x} ${offset.y})`}
+              style={{ filter: active === index ? 'drop-shadow(0 7px 6px rgba(15, 23, 42, .25))' : 'none' }}
+              onMouseEnter={() => setActive(index)}
+              onMouseLeave={() => setActive(null)}
+              onFocus={() => setActive(index)}
+              onBlur={() => setActive(null)}
+              tabIndex="0"
+              aria-label={`${monthLabel(item.month)}: ${formatMoney(item.revenue)}`}
             />
-          </div>
-          <span className="chart-label">{d.month?.slice(5)}</span>
-        </div>
-      ))}
+          })}
+        </svg>
+        <div className="revenue-donut-center"><strong>{formatMoney(total)}</strong><span>Total acumulado</span></div>
+      </div>
+      <div className="revenue-donut-legend">
+        {data.map((item, index) => <button
+          key={item.month}
+          className={active === index ? 'revenue-legend-item revenue-legend-item--active' : 'revenue-legend-item'}
+          onMouseEnter={() => setActive(index)}
+          onMouseLeave={() => setActive(null)}
+          onFocus={() => setActive(index)}
+          onBlur={() => setActive(null)}
+        ><i style={{ background: colors[index % colors.length] }} /><span>{monthLabel(item.month)}</span><strong>{formatMoney(item.revenue)}</strong></button>)}
+      </div>
     </div>
   )
 }
@@ -125,7 +173,7 @@ export default function AdminMetrics() {
       {/* Gráfico de ingresos */}
       <div className="metrics-chart-card">
         <h2 className="metrics-chart-title">Ganancia del admin por mes · últimos 6 meses (real + prueba)</h2>
-        <SimpleBarChart data={chart} />
+        <RevenueDonutChart data={chart} />
       </div>
 
       {/* Pedidos por estado y tipo */}
