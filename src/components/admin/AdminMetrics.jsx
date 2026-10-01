@@ -32,65 +32,44 @@ function monthLabel(month) {
   return new Date(`${month}-01T00:00:00`).toLocaleDateString('es-PE', { month: 'short' }).replace('.', '')
 }
 
-function pieSectorPath(startAngle, endAngle, radius = 92) {
-  const point = (angle, radius) => {
-    const radians = (angle - 90) * Math.PI / 180
-    return { x: 110 + radius * Math.cos(radians), y: 110 + radius * Math.sin(radians) }
-  }
-  const outerStart = point(startAngle, radius)
-  const outerEnd = point(endAngle, radius)
-  const largeArc = endAngle - startAngle > 180 ? 1 : 0
-  return `M 110 110 L ${outerStart.x} ${outerStart.y} A ${radius} ${radius} 0 ${largeArc} 1 ${outerEnd.x} ${outerEnd.y} Z`
-}
-
-function RevenueDonutChart({ data }) {
+function RevenueMonthlyChart({ data }) {
   const [active, setActive] = useState(null)
   if (!data || data.length === 0) return (
     <div className="chart-empty">Sin datos de ingresos aún</div>
   )
-  const total = data.reduce((sum, item) => sum + Number(item.revenue || 0), 0)
-  const colors = ['#ea580c', '#f97316', '#fb923c', '#f59e0b', '#14b8a6', '#6366f1']
+  const width = 760
+  const height = 330
+  const padding = { top: 24, right: 24, bottom: 54, left: 62 }
+  const plotWidth = width - padding.left - padding.right
+  const plotHeight = height - padding.top - padding.bottom
+  const max = Math.max(...data.map(item => Number(item.revenue || 0)), 1)
+  const x = index => data.length === 1 ? padding.left + plotWidth / 2 : padding.left + index * plotWidth / (data.length - 1)
+  const y = value => padding.top + plotHeight - (Number(value || 0) / max) * plotHeight
+  const points = key => data.map((item, index) => `${x(index)},${y(item[key] || 0)}`).join(' ')
+  const grid = [0, 0.25, 0.5, 0.75, 1]
+  const activeItem = active === null ? null : data[active]
   return (
-    <div className="revenue-donut-layout">
-      <div className="revenue-donut-wrap">
-        <svg className="revenue-donut" viewBox="0 0 220 220" role="img" aria-label="Ganancia del administrador por mes">
-          {data.map((item, index) => {
-            const span = Number(item.revenue || 0) / total * 360
-            const start = data.slice(0, index).reduce((sum, previous) => sum + Number(previous.revenue || 0), 0) / total * 360
-            const end = start + span
-            const middle = (start + end) / 2
-            const radians = (middle - 90) * Math.PI / 180
-            const offset = active === index ? { x: Math.cos(radians) * 6, y: Math.sin(radians) * 6 } : { x: 0, y: 0 }
-            const commonProps = {
-              key: item.month,
-              className: 'revenue-donut-segment',
-              fill: colors[index % colors.length],
-              transform: `translate(${offset.x} ${offset.y})`,
-              style: { filter: active === index ? 'drop-shadow(0 7px 6px rgba(15, 23, 42, .25))' : 'none' },
-              onMouseEnter: () => setActive(index),
-              onMouseLeave: () => setActive(null),
-              onFocus: () => setActive(index),
-              onBlur: () => setActive(null),
-              tabIndex: '0',
-              'aria-label': `${monthLabel(item.month)}: ${formatMoney(item.revenue)}`,
-            }
-            return span >= 359.99
-              ? <circle {...commonProps} cx="110" cy="110" r="92" />
-              : <path {...commonProps} d={pieSectorPath(start, end)} />
-          })}
-        </svg>
-      </div>
-      <div className="revenue-pie-summary"><strong>{formatMoney(total)}</strong><span>Total acumulado</span></div>
-      <div className="revenue-donut-legend">
-        {data.map((item, index) => <button
-          key={item.month}
-          className={active === index ? 'revenue-legend-item revenue-legend-item--active' : 'revenue-legend-item'}
-          onMouseEnter={() => setActive(index)}
-          onMouseLeave={() => setActive(null)}
-          onFocus={() => setActive(index)}
-          onBlur={() => setActive(null)}
-        ><i style={{ background: colors[index % colors.length] }} /><span>{monthLabel(item.month)}</span><strong>{formatMoney(item.revenue)}</strong></button>)}
-      </div>
+    <div className="revenue-line-wrap">
+      <div className="revenue-line-legend"><span><i className="revenue-line-key revenue-line-key--total" />Total ganado</span><span><i className="revenue-line-key revenue-line-key--real" />Ganancia real</span><span><i className="revenue-line-key revenue-line-key--test" />Ganancia de prueba</span></div>
+      <svg className="revenue-line-chart" viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Ganancia del administrador durante los últimos seis meses">
+        {grid.map(value => <g key={value}><line className="revenue-line-grid" x1={padding.left} x2={width - padding.right} y1={y(max * value)} y2={y(max * value)} /><text className="revenue-line-axis" x={padding.left - 10} y={y(max * value) + 4} textAnchor="end">{formatMoney(max * value)}</text></g>)}
+        <polyline className="revenue-line revenue-line--real" points={points('realRevenue')} />
+        <polyline className="revenue-line revenue-line--test" points={points('testRevenue')} />
+        <polyline className="revenue-line revenue-line--total" points={points('revenue')} />
+        {data.map((item, index) => <g key={item.month} className="revenue-line-point-group" onMouseEnter={() => setActive(index)} onMouseLeave={() => setActive(null)} onFocus={() => setActive(index)} onBlur={() => setActive(null)} tabIndex="0">
+          <line className={active === index ? 'revenue-line-hover-line revenue-line-hover-line--active' : 'revenue-line-hover-line'} x1={x(index)} x2={x(index)} y1={padding.top} y2={height - padding.bottom} />
+          <circle className="revenue-line-hit-area" cx={x(index)} cy={y(item.revenue)} r="14" />
+          <circle className="revenue-line-point revenue-line-point--total" cx={x(index)} cy={y(item.revenue)} r={active === index ? 6 : 4} />
+          <text className="revenue-line-month" x={x(index)} y={height - 24} textAnchor="middle">{monthLabel(item.month)}</text>
+        </g>)}
+        {activeItem && <g className="revenue-line-tooltip" transform={`translate(${Math.min(Math.max(x(active) - 92, padding.left), width - 210)} ${Math.max(y(activeItem.revenue) - 112, 8)})`}>
+          <rect width="184" height="96" rx="10" />
+          <text className="revenue-line-tooltip-title" x="14" y="20">{monthLabel(activeItem.month)}</text>
+          <text x="14" y="42">Total: <tspan>{formatMoney(activeItem.revenue)}</tspan></text>
+          <text x="14" y="62">Real: <tspan>{formatMoney(activeItem.realRevenue)}</tspan></text>
+          <text x="14" y="82">Prueba: <tspan>{formatMoney(activeItem.testRevenue)}</tspan></text>
+        </g>}
+      </svg>
     </div>
   )
 }
@@ -173,7 +152,7 @@ export default function AdminMetrics() {
       {/* Gráfico de ingresos */}
       <div className="metrics-chart-card">
         <h2 className="metrics-chart-title">Ganancia del admin por mes · últimos 6 meses (real + prueba)</h2>
-        <RevenueDonutChart data={chart} />
+        <RevenueMonthlyChart data={chart} />
       </div>
 
       {/* Pedidos por estado y tipo */}
