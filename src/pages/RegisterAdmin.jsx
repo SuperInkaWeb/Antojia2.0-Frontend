@@ -16,8 +16,8 @@ export default function RegisterAdmin() {
   const [error, setError] = useState('')
   const [registering, setRegistering] = useState(false)
   const [attempted, setAttempted] = useState(false)
-  const login = (signup = false) => loginWithRedirect({
-    authorizationParams: signup ? { screen_hint: 'signup' } : { prompt: 'login' },
+  const login = () => loginWithRedirect({
+    authorizationParams: { prompt: 'login' },
     appState: { returnTo: window.location.pathname },
   })
 
@@ -51,8 +51,8 @@ export default function RegisterAdmin() {
       <ShieldCheck size={48} />
       <h1>Acceso de administrador</h1>
       {isLoading || registering ? <p><Loader2 size={18} className="admin-register-spin"/> Preparando tu acceso…</p>
-        : !isAuthenticated ? <><p>Usa el correo configurado en ADMIN_EMAIL para crear o iniciar tu cuenta.</p><button onClick={() => login(true)}>Crear cuenta de administrador</button><button onClick={() => login(false)}>Ya tengo una cuenta</button></>
-        : error ? <><p className="admin-register-error">{error}</p><button onClick={() => login(false)}>Iniciar sesión como administrador</button></>
+        : !isAuthenticated ? <><p>Inicia sesión con una cuenta que tenga el rol ADMIN de Antojia en Auth0.</p><button onClick={login}>Iniciar sesión</button></>
+        : error ? <><p className="admin-register-error">{error}</p><button onClick={login}>Iniciar sesión nuevamente</button></>
         : null}
     </main>
   </div>
