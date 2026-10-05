@@ -33,6 +33,7 @@ function Auth0ProviderWithNavigate({ children }) {
         redirect_uri: window.location.origin + '/callback',
         audience:     import.meta.env.VITE_AUTH0_AUDIENCE,
         scope:        'openid profile email',
+        connection:   import.meta.env.VITE_AUTH0_CONNECTION,
       }}
       onRedirectCallback={onRedirectCallback}
     >
