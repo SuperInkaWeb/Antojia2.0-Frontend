@@ -24,7 +24,8 @@ export function useRestaurantOrders(restaurantId, params = {}) {
     },
     enabled: isAuthenticated && !!restaurantId,
     // La ubicación del delivery se actualiza mientras el pedido está en ruta.
-    refetchInterval: 5000,
+    // Actualiza pedidos cada minuto para reducir consultas innecesarias a Neon.
+    refetchInterval: 60000,
     placeholderData: (prev) => prev,
   })
 }
@@ -97,7 +98,8 @@ export function useRestaurantWallet(restaurantId) {
       return data.data
     },
     enabled: isAuthenticated && !!restaurantId,
-    refetchInterval: 30000,
+    // Actualiza el saldo cada minuto para mantener estable el consumo de Neon.
+    refetchInterval: 60000,
   })
 }
 
