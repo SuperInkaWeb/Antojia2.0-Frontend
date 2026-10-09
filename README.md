@@ -162,15 +162,21 @@ funcionen al recargar directamente una URL.
 Project Settings → Environment Variables:
 
 ```env
-VITE_API_URL=https://xxxxxxxxx.onrender.com
-VITE_AUTH0_CLIENT_ID=tu_client_id_de_auth0
-VITE_AUTH0_DOMAIN=dev-xxxxxxxxx.us.auth0.com
-VITE_AUTH0_AUDIENCE=https://xxxxxxxxx
+VITE_API_URL=xxxx
+VITE_AUTH0_CONNECTION=xxxx
+VITE_AUTH0_CLIENT_ID=xxxx
+VITE_AUTH0_DOMAIN=xxxx
+VITE_AUTH0_AUDIENCE=xxxx
 ```
 
-Usa estas cuatro variables en los entornos de Preview y Production si ambos
+Usa estas cinco variables en los entornos de Preview y Production si ambos
 deben consumir el backend de Render. Después de modificar una variable, crea
 un nuevo despliegue para que Vite regenere el bundle.
+
+Los valores reales se administran en Vercel y no se guardan en esta guía. Las
+variables `VITE_*` quedan incorporadas en el bundle público; por ello no deben
+contener tokens privados, secretos de Cloudinary, credenciales de Mercado Pago
+ni el token de ApiPeruDev.
 
 ### Configuración de build en Vercel
 
@@ -199,6 +205,22 @@ http://localhost:5173, https://tu-dominio-vercel.vercel.app
 > ⚠️ Auth0 requiere HTTPS en producción. Vercel habilita HTTPS automáticamente.
 
 > ⚠️ Si usas login con Google, debes configurar tus propias credenciales OAuth en Google Cloud Console y pegarlas en Auth0 → Authentication → Social → Google. Las Dev Keys de Auth0 no funcionan en producción.
+
+### Estado y pendientes técnicos
+
+La aplicación ya dispone de marketplace, carrito, checkout, pedidos,
+reservas, perfiles, onboarding por rol, portal de restaurante, dashboard de
+repartidor, paneles administrativo, financiero, técnico y de marketing, mapa de
+seguimiento, carga de imágenes y resultado de pagos.
+
+Queda pendiente corregir los errores reportados por ESLint, repetir el build de
+producción en un entorno con permisos de escritura y completar las pruebas
+integrales de pagos reales contra Mercado Pago y sus webhooks. La validación de
+RUC permanece en el backend para que el token de ApiPeruDev nunca se exponga al
+navegador.
+
+Los informes técnicos detallados se encuentran en `docs/` del repositorio
+backend.
 
 ---
 
